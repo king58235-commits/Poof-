@@ -1,0 +1,2179 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>契獸靈感產生器 v2</title>
+<style>
+:root {
+  --bg: #0b0e1c;
+  --panel: #161b33;
+  --panel-2: #1c2240;
+  --panel-3: #252c52;
+  --well: #10142b;
+  --line: #2a3159;
+  --line-2: #3a4377;
+  --text: #ece8f6;
+  --muted: #9ea5c6;
+  --faint: #6c739b;
+  --gold: #e8c27e;
+  --gold-2: #f6dca6;
+  --gold-dim: #8a6d3b;
+  --accent: #8ea2ff;
+  --violet: #b48cff;
+  --danger: #ff7b8f;
+  --ok: #79dcb0;
+  --warn: #ffcf8a;
+  --radius: 16px;
+  --shadow: 0 14px 36px -18px rgba(0, 0, 0, .75);
+  --font: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif;
+  --serif: "Noto Serif TC", "Source Han Serif TC", "Songti TC", "PMingLiU", "MingLiU", serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+  background:
+    radial-gradient(1100px 620px at 12% -12%, #2b2163 0%, transparent 62%),
+    radial-gradient(900px 520px at 100% -5%, #12385c 0%, transparent 58%),
+    radial-gradient(800px 600px at 50% 120%, #1d1440 0%, transparent 60%),
+    var(--bg);
+  background-attachment: fixed;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .55;
+  background-image:
+    radial-gradient(1px 1px at 23px 37px, rgba(255, 255, 255, .7), transparent 1.5px),
+    radial-gradient(1px 1px at 141px 92px, rgba(255, 255, 255, .45), transparent 1.5px),
+    radial-gradient(1.4px 1.4px at 77px 160px, rgba(246, 220, 166, .65), transparent 2px),
+    radial-gradient(1px 1px at 190px 15px, rgba(180, 200, 255, .55), transparent 1.5px);
+  background-size: 210px 210px, 260px 260px, 330px 330px, 290px 290px;
+}
+::selection { background: rgba(232, 194, 126, .35); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #2f375f; border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+.app { position: relative; z-index: 1; max-width: 1260px; margin: 0 auto; padding: 26px 20px 90px; }
+
+/* ---------- header ---------- */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 22px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.sigil { width: 58px; height: 58px; flex: none; filter: drop-shadow(0 0 14px rgba(232, 194, 126, .35)); }
+.sigil .ring { transform-box: fill-box; transform-origin: center; animation: spin 48s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+h1 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: 30px;
+  letter-spacing: .1em;
+  background: linear-gradient(100deg, var(--gold-2), var(--gold) 45%, #d6b8ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ver { font-family: var(--mono); font-size: 12px; letter-spacing: 0; vertical-align: middle; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--gold-dim); color: var(--gold); -webkit-text-fill-color: var(--gold); margin-left: 6px; }
+.tagline { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+.tabs { display: flex; gap: 4px; padding: 5px; border-radius: 999px; background: rgba(255, 255, 255, .03); border: 1px solid var(--line); overflow-x: auto; }
+.tab { font: inherit; font-size: 14px; color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 8px 16px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; transition: color .15s, background .15s; }
+.tab:hover { color: var(--text); }
+.tab[aria-selected="true"] { color: var(--gold-2); background: linear-gradient(180deg, #2e3668, #222a53); box-shadow: inset 0 0 0 1px var(--line-2), 0 0 20px -8px var(--gold); }
+.tab .count { font-size: 11px; min-width: 20px; padding: 0 6px; border-radius: 999px; background: rgba(232, 194, 126, .14); color: var(--gold); }
+
+/* ---------- panels ---------- */
+.panel {
+  position: relative;
+  background: linear-gradient(180deg, rgba(30, 36, 68, .88), rgba(20, 25, 49, .88));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+}
+.panel + .panel, .roll-main > * + * { margin-top: 16px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+h2 { margin: 0; font-family: var(--serif); font-size: 17px; font-weight: 700; letter-spacing: .08em; color: var(--gold-2); }
+h2::before { content: "✦"; color: var(--gold); font-size: .75em; margin-right: 8px; vertical-align: 2px; }
+h3 { margin: 16px 0 8px; font-size: 14px; color: var(--text); letter-spacing: .05em; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.spacer { flex: 1; }
+.head-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* ---------- controls ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  font: inherit; font-size: 14px; line-height: 1.2;
+  color: var(--text); background: var(--panel-3);
+  border: 1px solid var(--line-2); border-radius: 10px;
+  padding: 8px 13px; cursor: pointer;
+  transition: border-color .15s, background .15s, transform .1s, filter .15s;
+}
+.btn:hover { border-color: var(--accent); background: #2b3360; }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.btn svg, .btn-icon svg { width: 16px; height: 16px; flex: none; }
+.btn-sm { font-size: 13px; padding: 6px 10px; }
+.btn-ghost { background: transparent; border-color: transparent; color: var(--muted); }
+.btn-ghost:hover { background: rgba(255, 255, 255, .05); color: var(--text); border-color: var(--line-2); }
+.btn-primary { background: linear-gradient(180deg, #f3d699, #d8a659); border-color: #f6dca6; color: #2b1d07; font-weight: 700; box-shadow: 0 8px 22px -10px rgba(232, 194, 126, .8); }
+.btn-primary:hover { background: linear-gradient(180deg, #f8e1b0, #e0b46b); border-color: #fff0cc; filter: brightness(1.04); }
+.btn-danger { color: var(--danger); background: #2a1628; border-color: #6b2f48; }
+.btn-danger:hover { border-color: var(--danger); background: #361a31; }
+.btn-roll { font-size: 17px; padding: 12px 26px; letter-spacing: .12em; border-radius: 14px; }
+.btn-roll svg { width: 20px; height: 20px; transition: transform .4s; }
+.btn-roll:hover svg { transform: rotate(180deg); }
+.btn-icon { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border-radius: 9px; background: transparent; border: 1px solid transparent; color: var(--faint); cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
+.btn-icon:hover { color: var(--text); border-color: var(--line-2); background: rgba(255, 255, 255, .04); }
+.btn-icon.on { color: var(--gold); background: rgba(232, 194, 126, .1); border-color: var(--gold-dim); }
+.btn-icon.lock.on { color: #b8c4ff; background: rgba(142, 162, 255, .12); border-color: #4f62c4; }
+.btn-icon.danger:hover { color: var(--danger); border-color: #6b2f48; }
+.btn-icon.tiny { width: 26px; height: 26px; }
+.btn-icon.tiny svg { width: 14px; height: 14px; }
+.btn-icon:disabled { opacity: .35; cursor: not-allowed; }
+
+input, select, textarea {
+  font: inherit; font-size: 14px; color: var(--text);
+  background: var(--well); border: 1px solid var(--line-2); border-radius: 10px;
+  padding: 8px 11px; min-width: 0;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(142, 162, 255, .2); }
+input.invalid { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(255, 123, 143, .18); }
+textarea { width: 100%; resize: vertical; min-height: 90px; line-height: 1.6; }
+select { cursor: pointer; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--gold); width: 16px; height: 16px; }
+input[type="range"] { accent-color: var(--gold); padding: 0; border: 0; background: none; box-shadow: none; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+kbd { font-family: var(--mono); font-size: 11px; color: var(--muted); padding: 1px 6px; border-radius: 5px; border: 1px solid var(--line-2); border-bottom-width: 2px; background: var(--well); }
+
+.fld { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.fld > span:first-child { font-size: 12px; color: var(--muted); letter-spacing: .05em; }
+.check { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+
+.seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: 10px; overflow: hidden; background: var(--well); }
+.seg button { font: inherit; font-size: 13px; color: var(--muted); background: transparent; border: 0; padding: 7px 13px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button:hover { color: var(--text); }
+.seg button.on { color: var(--gold-2); background: var(--panel-3); }
+.seg .n { font-size: 11px; color: var(--faint); }
+
+.switch { position: relative; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--muted); }
+.switch input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.switch .track { width: 36px; height: 20px; border-radius: 999px; background: #2a3159; position: relative; transition: background .2s; }
+.switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #9aa1c3; transition: left .2s, background .2s; }
+.switch input:checked + .track { background: linear-gradient(90deg, var(--violet), var(--gold)); }
+.switch input:checked + .track::after { left: 19px; background: #fff; }
+.switch input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; background: #232a52; border: 1px solid var(--line-2); font-size: 13px; }
+.chip.hero { border-color: var(--gold-dim); color: var(--gold-2); background: rgba(232, 194, 126, .08); }
+.chip.amp { border-color: var(--violet); color: #dcc8ff; background: rgba(180, 140, 255, .12); }
+.chip.new { border-color: #3f8f6d; color: var(--ok); background: rgba(121, 220, 176, .08); }
+
+/* ---------- roll view ---------- */
+.roll-layout { display: grid; grid-template-columns: minmax(0, 1fr) 290px; gap: 18px; align-items: start; }
+.roll-main { min-width: 0; container-type: inline-size; }
+.side { position: sticky; top: 16px; display: grid; gap: 16px; }
+.side .panel + .panel { margin-top: 0; }
+
+.banner { display: flex; gap: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 16px; border-radius: 14px; background: linear-gradient(90deg, rgba(180, 140, 255, .16), rgba(142, 162, 255, .07)); border: 1px solid rgba(180, 140, 255, .4); }
+.banner-text { display: grid; gap: 2px; font-size: 14px; }
+.banner-text span { color: var(--muted); font-size: 13px; }
+
+.recipe-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.label { font-size: 12px; color: var(--muted); letter-spacing: .15em; margin-bottom: 8px; }
+.recipe-pills { display: flex; flex-wrap: wrap; gap: 7px; }
+.pill { font: inherit; font-size: 13px; color: var(--muted); background: transparent; border: 1px solid var(--line-2); border-radius: 999px; padding: 6px 14px; cursor: pointer; transition: all .15s; }
+.pill:hover { color: var(--text); border-color: var(--accent); }
+.pill.active { color: var(--gold-2); border-color: var(--gold-dim); background: rgba(232, 194, 126, .1); box-shadow: 0 0 16px -8px var(--gold); }
+.recipe-desc { margin-top: 10px; font-size: 13px; color: var(--faint); }
+.roll-actions { display: flex; gap: 8px; align-items: center; }
+
+.slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.slots.c1 { grid-template-columns: minmax(0, 1fr); }
+.slots.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.slots.c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@container (max-width: 760px) {
+  .slots.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container (max-width: 560px) {
+  .slots, .slots.c4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .slots.odd > :last-child { grid-column: 1 / -1; }
+  .slot { min-height: 200px; }
+  .slot .term { font-size: 25px; }
+}
+.slot {
+  position: relative;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 262px; padding: 14px;
+  border-radius: 18px;
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(142, 162, 255, .12), transparent 60%),
+    linear-gradient(170deg, #1f2651 0%, #161b38 60%, #121631 100%);
+  border: 1px solid var(--line-2);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: border-color .2s, box-shadow .2s;
+}
+.slot::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(255, 255, 255, .05); border-radius: 13px; pointer-events: none; }
+.slot.hero {
+  border-color: var(--gold-dim);
+  background:
+    radial-gradient(120% 70% at 50% 0%, rgba(232, 194, 126, .16), transparent 60%),
+    linear-gradient(170deg, #2a2552 0%, #1a1a3a 60%, #141531 100%);
+  box-shadow: 0 0 0 1px rgba(232, 194, 126, .3), 0 14px 40px -16px rgba(232, 194, 126, .5);
+}
+.slot.hero::before { border-color: rgba(232, 194, 126, .22); }
+.slot.locked { border-color: #4f62c4; }
+.slot.locked::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(135deg, rgba(142, 162, 255, .05) 0 8px, transparent 8px 16px); }
+.slot-head { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.role { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; letter-spacing: .18em; color: var(--gold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hero-tag { font-size: 10px; letter-spacing: .1em; padding: 1px 6px; border-radius: 999px; color: #2b1d07; background: var(--gold); }
+.slot-tools { display: flex; gap: 2px; }
+.slot-face { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 6px 0; }
+.term { font-family: var(--serif); font-size: 31px; font-weight: 700; line-height: 1.25; letter-spacing: .05em; overflow-wrap: anywhere; text-shadow: 0 2px 18px rgba(142, 162, 255, .3); }
+.term.long { font-size: 22px; letter-spacing: .02em; }
+.slot.hero .term { color: var(--gold-2); text-shadow: 0 2px 22px rgba(232, 194, 126, .4); }
+.slot.locked .term { color: #cdd6ff; }
+.term.spin { filter: blur(1.5px); opacity: .65; }
+.term.land { animation: land .45s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes land { from { transform: scale(.82) translateY(6px); opacity: .3; } to { transform: none; opacity: 1; } }
+.slot.flash { animation: flash .7s ease-out; }
+@keyframes flash { 0% { box-shadow: 0 0 0 1px rgba(246, 220, 166, .6), 0 0 40px -6px rgba(246, 220, 166, .6); } }
+.cat { font-size: 12px; color: var(--muted); }
+.used { font-size: 11px; color: var(--warn); background: rgba(255, 180, 80, .1); border: 1px solid rgba(255, 180, 80, .3); border-radius: 999px; padding: 1px 8px; }
+.slot select { position: relative; z-index: 1; width: 100%; font-size: 13px; padding: 6px 9px; }
+.slot-foot { position: relative; z-index: 1; display: flex; }
+.slot-foot .btn { flex: 1; }
+
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.field { display: flex; flex-direction: column; gap: 2px; padding: 9px 12px 10px; border-radius: 12px; background: var(--well); border: 1px solid var(--line); transition: border-color .15s; }
+.field:hover { border-color: var(--line-2); }
+.field.locked { border-color: #4f62c4; }
+.field-label { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 12px; color: var(--muted); min-height: 26px; }
+.field-value { font: inherit; font-size: 17px; font-weight: 700; color: var(--text); background: none; border: 0; padding: 0; text-align: left; cursor: pointer; }
+.field-value:hover:not(:disabled) { color: var(--gold-2); }
+.field-value:disabled { cursor: default; color: #cdd6ff; }
+.field-hint { font-size: 11px; color: var(--warn); }
+.field-picker { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 12px; margin-bottom: 12px; border-radius: 12px; border: 1px dashed var(--line-2); }
+.field-picker .check { margin-left: auto; }
+
+.palette-block { margin-top: 12px; }
+.palette { display: flex; height: 70px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line-2); }
+.swatch { flex: 1; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; padding: 0 4px 7px; font-size: 11px; transition: flex .2s; }
+.swatch:hover { flex: 1.35; }
+.swatch code { font-family: var(--mono); font-size: 11px; opacity: .9; }
+
+.sentence { font-family: var(--serif); font-size: 19px; line-height: 1.85; }
+.sentence b { color: var(--gold-2); font-weight: 700; }
+.profile-line { margin-top: 6px; color: var(--muted); font-size: 14px; }
+.prompts-head { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.prompts-head h3 { margin: 0; }
+.prompts { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 8px; counter-reset: q; }
+.prompts li { counter-increment: q; position: relative; padding: 9px 14px 9px 40px; border-radius: 10px; background: var(--well); border: 1px solid var(--line); }
+.prompts li::before { content: "Q" counter(q); position: absolute; left: 12px; top: 10px; font-family: var(--mono); font-size: 11px; color: var(--violet); }
+.hl { font-style: normal; color: #dccbff; }
+
+.evo { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: stretch; }
+.evo-stage { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; background: var(--well); border: 1px solid var(--line); }
+.evo-stage:last-child { border-color: rgba(180, 140, 255, .45); background: linear-gradient(180deg, rgba(180, 140, 255, .1), var(--well)); }
+.evo-stage h4 { margin: 0; font-family: var(--serif); font-size: 15px; letter-spacing: .1em; color: var(--gold); }
+.evo-stage p { font-size: 13px; color: var(--muted); }
+.evo-arrow { align-self: center; color: var(--faint); }
+.evo-arrow svg { width: 20px; height: 20px; }
+
+.form-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 14px; }
+.form-grid .span2 { grid-column: 1 / -1; }
+.form-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.form-status { font-size: 12px; padding: 3px 10px; border-radius: 999px; color: var(--muted); border: 1px solid var(--line-2); }
+.form-status.editing { color: #c9d3ff; border-color: #4f62c4; background: rgba(142, 162, 255, .1); }
+.form-status.dirty { color: var(--warn); border-color: rgba(255, 180, 80, .45); background: rgba(255, 180, 80, .08); }
+.seg .st-idea.on { color: #dccbff; }
+.seg .st-draft.on { color: #c3cdff; }
+.seg .st-done.on { color: var(--ok); }
+
+.history { display: grid; gap: 6px; max-height: 50vh; overflow: auto; margin-right: -6px; padding-right: 6px; }
+.hist-item { font: inherit; text-align: left; display: grid; gap: 3px; padding: 8px 10px; border-radius: 10px; background: var(--well); border: 1px solid var(--line); color: var(--text); cursor: pointer; transition: border-color .15s; }
+.hist-item:hover { border-color: var(--line-2); }
+.hist-item.current { border-color: var(--gold-dim); background: linear-gradient(90deg, rgba(232, 194, 126, .08), var(--well)); }
+.hist-terms { font-size: 13px; }
+.hist-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 11px; color: var(--faint); }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .3); }
+.shortcuts dl { margin: 0; display: grid; gap: 7px; font-size: 13px; }
+.shortcuts dl div { display: flex; justify-content: space-between; gap: 8px; }
+.shortcuts dt { white-space: nowrap; }
+.shortcuts dd { margin: 0; color: var(--muted); text-align: right; }
+
+/* ---------- dex view ---------- */
+.dex-toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.dex-toolbar input[type="search"] { flex: 1 1 240px; }
+.stats summary { cursor: pointer; font-family: var(--serif); color: var(--gold-2); letter-spacing: .08em; list-style: none; display: flex; align-items: center; gap: 8px; }
+.stats summary::-webkit-details-marker { display: none; }
+.stats summary::before { content: "▸"; color: var(--gold); transition: transform .2s; }
+.stats[open] summary::before { transform: rotate(90deg); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; margin-top: 14px; }
+.stats-grid h4 { margin: 0 0 8px; font-size: 13px; color: var(--muted); font-weight: 400; letter-spacing: .1em; }
+.bars { display: grid; gap: 6px; }
+.bar-row { display: grid; grid-template-columns: 88px minmax(0, 1fr) 24px; gap: 8px; align-items: center; font-size: 13px; }
+.bar-row > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar { height: 8px; border-radius: 999px; background: #232a52; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--violet), var(--gold)); }
+.bar-row > span:last-child { text-align: right; color: var(--faint); font-family: var(--mono); font-size: 12px; }
+
+.dex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-top: 16px; }
+.dex-card { display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: linear-gradient(180deg, rgba(30, 36, 68, .92), rgba(20, 25, 49, .92)); border: 1px solid var(--line); box-shadow: var(--shadow); transition: border-color .2s, transform .2s; }
+.dex-card:hover { border-color: var(--line-2); transform: translateY(-2px); }
+.dex-card.editing { border-color: #4f62c4; }
+.strip { display: flex; height: 9px; }
+.strip span { flex: 1; }
+.dex-body { flex: 1; display: flex; flex-direction: column; gap: 9px; padding: 14px 16px 12px; }
+.dex-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.dex-name { margin: 0; font-family: var(--serif); font-size: 18px; line-height: 1.35; overflow-wrap: anywhere; }
+.status-select { font-size: 12px; padding: 3px 6px; border-radius: 8px; flex: none; }
+.status-select.st-idea { color: #dccbff; }
+.status-select.st-draft { color: #c3cdff; }
+.status-select.st-done { color: var(--ok); }
+.dex-prof { font-size: 13px; color: var(--muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font: inherit; font-size: 12px; color: var(--accent); background: none; border: 0; padding: 0 4px 0 0; cursor: pointer; }
+.tag:hover { text-decoration: underline; }
+.note { font-size: 13px; color: var(--muted); white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.dex-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding-top: 4px; border-top: 1px solid var(--line); }
+.dex-foot small { color: var(--faint); font-size: 12px; }
+.empty { text-align: center; padding: 50px 20px; color: var(--muted); }
+.empty strong { display: block; font-family: var(--serif); font-size: 18px; color: var(--gold-2); margin-bottom: 6px; }
+
+/* ---------- lexicon view ---------- */
+.lex-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 16px; align-items: start; }
+.lex-layout .panel + .panel { margin-top: 0; }
+#catNav { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+.cat-group h4 { margin: 14px 0 5px; font-size: 12px; font-weight: 400; letter-spacing: .2em; color: var(--gold); }
+.cat-btn { font: inherit; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; width: 100%; text-align: left; padding: 6px 10px; border-radius: 9px; border: 1px solid transparent; background: transparent; color: var(--text); cursor: pointer; }
+.cat-btn:hover { background: rgba(255, 255, 255, .04); }
+.cat-btn.active { background: var(--panel-3); border-color: var(--line-2); color: var(--gold-2); }
+.cat-btn .n { font-size: 12px; color: var(--faint); font-family: var(--mono); }
+.add-cat { display: flex; gap: 6px; margin-top: 16px; }
+.add-cat input { flex: 1; }
+.cat-meta { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 12px; margin-bottom: 12px; }
+.range { display: flex; align-items: center; gap: 10px; height: 38px; }
+.range input { flex: 1; }
+.range output { font-family: var(--mono); color: var(--gold); width: 1.5em; text-align: center; }
+.phrase-preview { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.phrase-preview b { color: var(--gold-2); }
+.chips-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 16px 0 6px; }
+.chips-head h3 { margin: 0; }
+.term-chips { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; max-height: 330px; overflow: auto; padding: 10px; margin-top: 8px; border-radius: 12px; border: 1px solid var(--line); background: var(--well); }
+.tchip { font: inherit; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2); background: #232a52; color: var(--text); cursor: pointer; transition: border-color .15s, background .15s; }
+.tchip .x { opacity: .4; }
+.tchip:hover { border-color: var(--danger); background: #35203a; }
+.tchip:hover .x { opacity: 1; color: var(--danger); }
+
+.recipe-meta { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 12px; margin: 14px 0; }
+.rslots { display: grid; gap: 10px; }
+.rslot { display: grid; gap: 9px; padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--well); }
+.rslot-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rslot-no { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; font-family: var(--mono); font-size: 12px; color: var(--gold); border: 1px solid var(--gold-dim); }
+.rslot-head input[type="text"] { width: 150px; }
+.src-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.src-chip { font: inherit; font-size: 12px; padding: 3px 10px; border-radius: 999px; border: 1px dashed var(--line-2); background: transparent; color: var(--faint); cursor: pointer; transition: all .15s; }
+.src-chip:hover { color: var(--text); border-color: var(--accent); }
+.src-chip.on { border-style: solid; color: var(--text); background: #28305c; border-color: var(--accent); }
+.src-chip.group.on { color: var(--gold-2); background: rgba(232, 194, 126, .1); border-color: var(--gold-dim); }
+
+/* ---------- data view ---------- */
+.data-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; align-items: start; }
+.data-grid .panel + .panel { margin-top: 0; }
+.data-grid p + .btn-row, .data-grid .btn-row + p { margin-top: 10px; }
+.data-grid h2 + p { margin-top: 10px; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.danger-zone { border-color: rgba(255, 123, 143, .3); }
+.danger-zone h2 { color: #ffb3bf; }
+.danger-zone h2::before { color: var(--danger); }
+
+/* ---------- overlays ---------- */
+#toasts { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 60; display: grid; gap: 8px; width: max-content; max-width: calc(100% - 32px); }
+.toast { display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: 12px; font-size: 14px; background: #262c55; border: 1px solid var(--line-2); box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .8); animation: toastIn .25s ease-out; transition: opacity .3s, transform .3s; }
+.toast.out { opacity: 0; transform: translateY(8px); }
+.toast-action { font: inherit; font-weight: 700; color: var(--gold); background: none; border: 0; cursor: pointer; padding: 0; white-space: nowrap; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(10px); } }
+dialog { width: min(440px, calc(100% - 32px)); padding: 22px; border-radius: 16px; color: var(--text); background: var(--panel-2); border: 1px solid var(--line-2); box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .9); }
+dialog::backdrop { background: rgba(5, 6, 15, .65); backdrop-filter: blur(3px); }
+dialog h3 { margin: 0 0 8px; font-family: var(--serif); font-size: 18px; color: var(--gold-2); }
+dialog p { color: var(--muted); white-space: pre-line; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) {
+  .roll-layout { grid-template-columns: minmax(0, 1fr); }
+  .side { position: static; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .history { max-height: 260px; }
+}
+@media (max-width: 780px) {
+  .app { padding: 18px 16px 80px; }
+  .top { flex-direction: column; align-items: stretch; }
+  .tabs { justify-content: space-between; }
+  .tab { flex: 1; justify-content: center; padding: 8px 10px; }
+  h1 { font-size: 25px; }
+  .lex-layout { grid-template-columns: minmax(0, 1fr); }
+  #catNav { position: static; max-height: none; }
+  .cat-meta, .recipe-meta { grid-template-columns: minmax(0, 1fr); }
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .evo { grid-template-columns: minmax(0, 1fr); }
+  .evo-arrow { justify-self: center; transform: rotate(90deg); }
+  .recipe-row { align-items: stretch; }
+  .roll-actions { width: 100%; }
+  .roll-actions .btn-roll { flex: 1; }
+  .panel { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="sigil" viewBox="0 0 64 64" aria-hidden="true">
+        <defs><linearGradient id="sigilGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dca6"/><stop offset="1" stop-color="#b48cff"/></linearGradient></defs>
+        <g fill="none" stroke="url(#sigilGrad)" stroke-width="1.5">
+          <circle cx="32" cy="32" r="29.5"/>
+          <circle class="ring" cx="32" cy="32" r="24" stroke-dasharray="1.5 4.5"/>
+          <path d="M32 10 L51 43 L13 43 Z"/>
+          <path d="M32 54 L13 21 L51 21 Z"/>
+          <circle cx="32" cy="32" r="7"/>
+        </g>
+        <circle cx="32" cy="32" r="2.6" fill="#f6dca6"/>
+      </svg>
+      <div>
+        <h1>契獸靈感產生器<span class="ver">v2</span></h1>
+        <p class="tagline">抽一組元素，寫成一頁契獸設計。資料只存在你的裝置裡。</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="頁面">
+      <button class="tab" role="tab" data-tab="roll">召喚</button>
+      <button class="tab" role="tab" data-tab="dex">圖鑑 <span class="count" id="dexCount">0</span></button>
+      <button class="tab" role="tab" data-tab="lex">詞庫與配方</button>
+      <button class="tab" role="tab" data-tab="data">備份</button>
+    </nav>
+  </header>
+
+  <section class="view" id="view-roll">
+    <div id="v1Banner"></div>
+    <div class="roll-layout">
+      <div class="roll-main">
+        <div class="panel">
+          <div class="recipe-row">
+            <div>
+              <div class="label">配方</div>
+              <div class="recipe-pills" id="recipePills"></div>
+            </div>
+            <div class="roll-actions">
+              <button class="btn btn-ghost" id="undoBtn" data-icon="undo" title="回到上一組（Z）">上一組</button>
+              <button class="btn btn-primary btn-roll" id="rollBtn" data-icon="dice" title="Space">召喚新組合</button>
+            </div>
+          </div>
+          <p class="recipe-desc" id="recipeDesc"></p>
+        </div>
+        <div class="slots" id="slots"></div>
+        <div class="panel" id="profilePanel"></div>
+        <div class="panel" id="descPanel"></div>
+        <div class="panel" id="evoPanel"></div>
+        <div class="panel" id="formPanel"></div>
+      </div>
+      <aside class="side">
+        <div class="panel">
+          <div class="panel-head"><h2>抽取紀錄</h2><span class="muted small">點擊即可回復</span></div>
+          <div class="history" id="history"></div>
+        </div>
+        <div class="panel shortcuts">
+          <div class="panel-head"><h2>快捷鍵</h2></div>
+          <dl>
+            <div><dt><kbd>Space</kbd></dt><dd>召喚新組合</dd></div>
+            <div><dt><kbd>1</kbd>～<kbd>6</kbd></dt><dd>重抽該格</dd></div>
+            <div><dt><kbd>Shift</kbd> + <kbd>數字</kbd></dt><dd>鎖定／解鎖該格</dd></div>
+            <div><dt><kbd>Z</kbd></dt><dd>回到上一組</dd></div>
+            <div><dt><kbd>P</kbd></dt><dd>重抽配色</dd></div>
+            <div><dt><kbd>Q</kbd></dt><dd>換一批追問</dd></div>
+            <div><dt><kbd>S</kbd></dt><dd>收入／更新圖鑑</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="view" id="view-dex" hidden>
+    <div class="panel dex-toolbar">
+      <input type="search" id="dexSearch" placeholder="搜尋名稱、詞彙、標籤、筆記…" aria-label="搜尋圖鑑">
+      <div class="seg" id="dexStatusSeg" role="group" aria-label="狀態篩選"></div>
+      <select id="dexSort" aria-label="排序">
+        <option value="new">最新收錄</option>
+        <option value="old">最早收錄</option>
+        <option value="name">依名稱</option>
+      </select>
+      <button class="btn" id="dexExportMd" data-icon="download">匯出這個列表</button>
+    </div>
+    <details class="panel stats" id="dexStats">
+      <summary>統計 <span class="muted small" id="dexStatsSum"></span></summary>
+      <div class="stats-grid" id="dexStatsBody"></div>
+    </details>
+    <div class="dex-grid" id="dexGrid"></div>
+  </section>
+
+  <section class="view" id="view-lex" hidden>
+    <div class="lex-layout">
+      <aside class="panel" id="catNav"></aside>
+      <div class="panel" id="catEditor"></div>
+    </div>
+    <div class="panel" id="recipeEditor"></div>
+  </section>
+
+  <section class="view" id="view-data" hidden>
+    <div class="data-grid">
+      <div class="panel">
+        <h2>備份與搬移</h2>
+        <p class="muted small">所有修改都會自動存在這個瀏覽器裡。建議定期匯出 JSON 備份；匯入時可以選擇「合併」或「取代」。舊版（v1）的 JSON 備份也能直接匯入。</p>
+        <div class="btn-row">
+          <button class="btn" id="exportJson" data-icon="download">匯出 JSON 備份</button>
+          <button class="btn" id="importJson" data-icon="upload">匯入 JSON</button>
+        </div>
+        <h3>單檔帶著走</h3>
+        <p class="muted small">把目前的詞庫、配方和圖鑑直接嵌進一個新的 HTML 檔，換電腦打開就能繼續用。新檔案有自己獨立的存檔空間，不會和這個檔案互相覆蓋。</p>
+        <div class="btn-row"><button class="btn btn-primary" id="exportHtml" data-icon="download">匯出目前版本 HTML</button></div>
+        <h3>給設計文件用</h3>
+        <p class="muted small">把整本圖鑑匯出成 Markdown，可以直接貼進企劃文件或筆記軟體。</p>
+        <div class="btn-row"><button class="btn" id="exportMdAll" data-icon="book">匯出圖鑑 Markdown</button></div>
+        <p class="muted small" id="storageInfo" style="margin-top:14px"></p>
+      </div>
+      <div class="panel" id="v1Section"></div>
+      <div class="panel danger-zone">
+        <h2>重設</h2>
+        <p class="muted small">「預設」指的是這個 HTML 檔內建的資料。重設前建議先匯出 JSON 備份。</p>
+        <div class="btn-row" style="margin-top:12px">
+          <button class="btn" id="resetLex">恢復預設詞庫（保留圖鑑）</button>
+          <button class="btn" id="resetRecipes">恢復預設配方</button>
+          <button class="btn btn-danger" id="resetAll" data-icon="trash">全部重設</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+<dialog id="dialog"></dialog>
+<input type="file" id="jsonFile" accept=".json,application/json" hidden>
+
+<script id="seedData" type="application/json">{"version":2,"fileId":"base","categories":{"動物・陸生":{"group":"body","weight":1,"phrase":"混有「{t}」的特徵","terms":["狐狸","狼","狗","貓","獅子","老虎","豹子","熊","貓熊","浣熊","貂","鼬鼠","水獺","鼴鼠","刺蝟","豪豬","松鼠","兔子","鹿","麋鹿","山羊","綿羊","牛","野豬","馬","驢","駱駝","長頸鹿","大象","犀牛","河馬","穿山甲","食蟻獸","樹懶","袋鼠","無尾熊","狐獴","土狼","猴子","狒狒","猩猩","蝙蝠","豹貓","雪豹","鼬獾","臭鼬","負鼠","犰狳","貘","羚羊","斑馬","野牛","鴨嘴獸"]},"動物・鳥類":{"group":"body","weight":1,"phrase":"混有「{t}」的特徵","terms":["老鷹","貓頭鷹","烏鴉","渡鴉","麻雀","喜鵲","孔雀","火雞","鴕鳥","鶴","鷺鷥","天鵝","鴨","鵝","企鵝","翠鳥","蜂鳥","啄木鳥","巨嘴鳥","鸚鵡","鵜鶘","海鷗","信天翁","禿鷹","隼","燕子","夜鶯","鴿子","鳳頭鸚鵡","秧雞","鴛鴦","白鷺","鷸鳥","鴇鳥","鴝鳥","鵪鶉","朱鷺"]},"動物・水生":{"group":"body","weight":1,"phrase":"混有「{t}」的特徵","terms":["鯊魚","鯨魚","海豚","虎鯨","章魚","烏賊","魷魚","水母","海星","海膽","海參","海馬","河豚","鰻魚","鯰魚","鯉魚","金魚","飛魚","魟魚","蝠魟","鮟鱇魚","燈籠魚","旗魚","鋸鯊","鮭魚","小丑魚","海葵","珊瑚","海蛞蝓","海兔","貝殼","蛤蜊","牡蠣","螃蟹","寄居蟹","龍蝦","蝦","藤壺","海豹","海獅","海象","海龜","水蛇","蝌蚪","彈塗魚","箱魨","角鯊","鯖魚","鱒魚","蜘蛛蟹"]},"動物・蟲與節肢":{"group":"body","weight":1,"phrase":"混有「{t}」的特徵","terms":["螳螂","蝴蝶","飛蛾","蜜蜂","黃蜂","螞蟻","白蟻","蜻蜓","豆娘","螢火蟲","瓢蟲","獨角仙","鍬形蟲","金龜子","天牛","蟋蟀","蚱蜢","蟬","蟑螂","蒼蠅","蚊子","跳蚤","蜘蛛","蠍子","蜈蚣","馬陸","鼠婦","衣魚","蚯蚓","水蛭","蛞蝓","蝸牛","毛毛蟲","蠶","竹節蟲","椿象","水黽","蟻獅","蛾蚋","蜉蝣"]},"動物・爬蟲與兩棲":{"group":"body","weight":1,"phrase":"混有「{t}」的特徵","terms":["蛇","眼鏡蛇","蟒蛇","響尾蛇","蜥蜴","壁虎","變色龍","鬣蜥","巨蜥","科摩多龍","鱷魚","短吻鱷","烏龜","陸龜","鱉","青蛙","樹蛙","蟾蜍","蠑螈","六角恐龍","山椒魚","蚓螈","海蛇","飛蜥","角蜥","滑翔蜥","石龍子","箭毒蛙","玻璃蛙","飛蛙","毒蜥","盲蛇","火蠑螈","黑斑蛙","青竹絲","蛇頸龜","鱷龜","鬃獅蜥","傘蜥"]},"植物・真菌":{"group":"body","weight":1,"phrase":"身上長有「{t}」","terms":["玫瑰","向日葵","蓮花","睡蓮","牽牛花","百合","蘭花","鬱金香","蒲公英","薰衣草","櫻花","梅花","楓樹","松樹","柳樹","竹子","仙人掌","藤蔓","常春藤","蕨類","苔蘚","蘑菇","毒菇","靈芝","地衣","食人花","捕蠅草","豬籠草","海藻","水草","藍莓","葡萄","草莓","石榴","南瓜","橡實","樹根","種子","孢子","蒲葦","菟絲子","榕樹","蘆葦","曼陀羅"]},"物件・器具":{"group":"body","weight":1,"phrase":"帶有「{t}」的造型元素","terms":["時鐘","沙漏","鏡子","燈籠","蠟燭","鐘","鑰匙","鎖","鎖鏈","面具","王冠","盔甲","盾牌","長劍","剪刀","雨傘","扇子","紙傘","書本","卷軸","羽毛筆","墨水瓶","茶壺","茶杯","鐵砧","錘子","齒輪","音樂盒","懷錶","望遠鏡","指南針","傀儡","木偶","洋娃娃","玩具熊","玻璃瓶","藥瓶","懷爐","魚鉤","魚網","棺材","水晶球","提琴","豎琴","鼓","弓箭","風鈴","地毯","車輪"]},"自然・物質":{"group":"mod","weight":1,"phrase":"帶有「{t}」的質地或力量","terms":["火焰","雷電","冰霜","雪花","暴風","沙塵","泥土","岩石","熔岩","火山","灰燼","蒸氣","水滴","漩渦","潮汐","海浪","雲霧","彩虹","極光","星光","月光","陽光","黑暗","影子","磁鐵","水晶","鑽石","琥珀","金屬","鐵鏽","玻璃","陶瓷","黏液","泡沫","毒液","酸液","鹽","流沙","花粉","石英","煤炭","霜花","熔鐵","隕石","重力","珍珠"]},"抽象・傳說":{"group":"mod","weight":1,"phrase":"象徵「{t}」","terms":["夢境","記憶","時間","空間","命運","幸運","厄運","孤獨","羈絆","恐懼","憤怒","喜悅","悲傷","希望","絕望","誓約","祈禱","幻影","迴聲","沉默","音樂","節奏","睡眠","噩夢","迷宮","秘密","傳說","幽靈","靈魂","詛咒","祝福","永恆","輪迴","日蝕","月蝕","虛無","混沌","秩序","裂隙","鏡像","分身","幻覺","獻祭","新生","封印","夢遊","失憶","復甦","預言"]},"生態・行為":{"group":"hook","weight":1,"phrase":"習性是「{t}」","terms":["寄生","共生","擬態","群居","獨居","遷徙","築巢","地底挖掘","深海伏擊","夜間狩獵","儲存食物","收集亮晶晶物品","用聲音導航","利用氣味溝通","冬眠","假死","脫殼","斷尾再生","變態發育","孵化","分裂繁殖","孢子傳播","守護領地","模仿聲音","交換外殼","吸收熱量","吐絲結網","製造陷阱","反芻","趨光","避光","淨化水源","搬運種子","控制寄主","與植物共生","交換記憶","依賴月相","追逐雷雨","集體築牆","分泌黏液","用舞蹈求偶","以震動定位"]},"外觀・構造":{"group":"hook","weight":1,"phrase":"具有「{t}」","terms":["透明身體","多重眼睛","單眼","巨大尾巴","雙尾","六足","無足","浮空","反向關節","金屬骨骼","結晶外殼","中空身體","發光觸角","可拆卸頭部","刀刃前肢","花瓣耳朵","羽毛披風","液態四肢","多層翅膀","面具臉孔","盔甲甲殼","巨型角","刺狀背鰭","雙重嘴巴","頭部倒置","不對稱雙臂","旋轉關節","細長頸部","身體可伸縮","螺旋紋理","環狀身體","懸浮碎片","發光血管","岩層皮膚","絲帶尾巴","無影子","鏡面皮膚","季節變色","半機械化","雙重瞳孔","內部有小型生態圈","毛皮與鱗片混生","發條核心","倒鉤羽毛"]},"戰鬥・能力":{"group":"hook","weight":1,"phrase":"戰鬥時會「{t}」","terms":["蓄力後爆發","越受傷越迅速","儲存受到的傷害","吸取生命","模仿招式","反擊近身攻擊","折射光線","分裂誘餌","製造護盾","改變重量","複製影子","引爆孢子","釋放煙霧","吸引攻擊","偷走增益","戰鬥中變形","創造地形","強化同伴","清除異常","交換位置","製造幻象","吸收元素","延後傷害","自我再生","反彈狀態","封鎖技能","反轉速度","逐回合硬化","集中火力","擾亂命中","自身過熱","短暫隱形","擴散毒素","利用回音","召喚分身","反制爆擊","越慢越強","承受攻擊後充能","以生命換力量","連續追擊","遭擊倒時留下陷阱"]},"遊戲・屬性":{"group":"game","weight":1,"phrase":"{t}","terms":["火","水","木","雷","冰","土","風","光","暗","毒","金屬","幻","靈","無"]},"遊戲・棲地":{"group":"game","weight":1,"phrase":"{t}","terms":["森林","草原","竹林","花田","沼澤","濕地","河川","湖泊","海岸","珊瑚礁","深海","冰原","雪山","火山","沙漠","荒野","峽谷","洞窟","礦坑","地底熔岩","雲海","天空","古代遺跡","神殿","墓地","廢棄城鎮","都市下水道","古老書庫","鐘樓","夜市","星空高原","夢境邊界"]},"遊戲・性格":{"group":"game","weight":1,"phrase":"{t}","terms":["膽小","好奇","傲嬌","慵懶","暴躁","溫和","頑皮","忠誠","孤僻","貪吃","愛乾淨","愛炫耀","多疑","憨厚","冷靜","黏人","好鬥","害羞","健忘","固執","浪漫","神經質","天然呆","老成"]},"遊戲・體型":{"group":"game","weight":1,"phrase":"{t}","terms":["掌上型","小型","中型","大型","巨型","會隨情緒變大小"]},"遊戲・風格":{"group":"game","weight":1,"phrase":"{t}","terms":["可愛","帥氣","詭異","神聖","滑稽","威嚴","優雅","獵奇","樸素","華麗","機械感","童話感","民俗感","古代文明感"]},"遊戲・輪廓":{"group":"game","weight":1,"phrase":"{t}","terms":["圓潤（親和）","尖銳三角（危險）","方正（穩重）","細長（靈巧）","不對稱（詭異）","流線（迅速）","蓬鬆（柔軟）","層疊（厚重）"]},"遊戲・稀有度":{"group":"game","weight":1,"phrase":"{t}","terms":["常見","少見","稀有","傳說","幻之"]}},"recipes":[{"id":"standard","name":"標準型","desc":"身體來源＋元素＋設計鉤子。最穩定、最好下筆的組合。","hero":0,"slots":[{"role":"主體","src":["@body"]},{"role":"元素","src":["@mod"]},{"role":"特徵","src":["@hook"]}]},{"id":"chimera","name":"混種型","desc":"兩種身體來源混在一起，再加一個外觀特徵。","hero":0,"slots":[{"role":"主體","src":["@body"]},{"role":"副主體","src":["@body"]},{"role":"外觀","src":["外觀・構造"]}]},{"id":"tsukumo","name":"物件妖怪型","desc":"器物成精：一件物品，加上它承載的概念與習性。","hero":0,"slots":[{"role":"本體器物","src":["物件・器具"]},{"role":"概念","src":["抽象・傳說"]},{"role":"習性","src":["生態・行為"]}]},{"id":"spirit","name":"元素精靈型","desc":"以自然現象為核心，再給它一個形態與能力。","hero":0,"slots":[{"role":"核心元素","src":["自然・物質"]},{"role":"形態","src":["外觀・構造","@body"]},{"role":"能力","src":["戰鬥・能力"]}]},{"id":"full","name":"完全體","desc":"四格：主體＋副主體＋元素＋特徵，適合 Boss 或傳說級契獸。","hero":0,"slots":[{"role":"主體","src":["@body"]},{"role":"副主體","src":["@body"]},{"role":"元素","src":["@mod"]},{"role":"特徵","src":["@hook"]}]},{"id":"chaos","name":"純隨機","desc":"每一格都從所有分類平均抽取，追求意外的組合。","hero":0,"slots":[{"role":"元素一","src":["@all"]},{"role":"元素二","src":["@all"]},{"role":"元素三","src":["@all"]}]}],"dex":[],"settings":{"recipeId":"standard","profileOff":["遊戲・稀有度"],"followElement":true,"showEvo":false,"v1Dismissed":false}}</script>
+<script>
+(() => {
+'use strict';
+
+// Captured before anything renders, so "匯出 HTML" always starts from clean markup.
+const TEMPLATE = '<!doctype html>\n' + document.documentElement.outerHTML;
+const SEED = JSON.parse(document.getElementById('seedData').textContent);
+
+const GROUPS = { body: '身體來源', mod: '元素修飾', hook: '設計鉤子', game: '遊戲設定' };
+const GROUP_KEYS = Object.keys(GROUPS);
+const DEFAULT_PHRASE = { body: '混有「{t}」的特徵', mod: '帶有「{t}」的要素', hook: '具有「{t}」的特點', game: '{t}' };
+const STATUS = { idea: '靈感', draft: '草稿', done: '完成' };
+const BAD_NAMES = ['__proto__', 'prototype', 'constructor'];
+const MAX_HISTORY = 40;
+const MAX_SLOTS = 6;
+const V1_PREFIX = 'monster-concept-roller-v1-';
+// Terms that v2 moved or removed from the v1 seed; skipped when merging v1 data.
+const V1_REMOVED = {
+  '動物・鳥類': ['鴨嘴獸'],
+  '動物・水生': ['鱷魚'],
+  '動物・蟲與節肢': ['銀魚', '蜘蛛蟹'],
+  '動物・爬蟲與兩棲': ['蜥腳獸', '龜殼龍', '火蜥蜴', '蠑螈幼體', '水龍'],
+  '自然・物質': ['閃電', '風暴', '晶礦'],
+  '物件・器具': ['羅盤'],
+  '生態・行為': ['隨季節遷居'],
+};
+const ELEMENT_TONES = [
+  ['火', { h: [0, 25] }], ['水', { h: [195, 225] }], ['木', { h: [85, 135] }], ['草', { h: [85, 135] }],
+  ['雷', { h: [45, 60] }], ['電', { h: [45, 60] }], ['冰', { h: [180, 200], l: 8 }], ['土', { h: [25, 42], s: -15 }],
+  ['地', { h: [25, 42], s: -15 }], ['岩', { h: [25, 45], s: -30 }], ['風', { h: [140, 170] }], ['光', { h: [40, 55], l: 12 }],
+  ['聖', { h: [40, 55], l: 12 }], ['暗', { h: [250, 285], l: -18 }], ['毒', { h: [275, 310] }], ['金', { h: [200, 220], s: -45 }],
+  ['鋼', { h: [200, 220], s: -45 }], ['幻', { h: [300, 335] }], ['妖', { h: [300, 335] }], ['靈', { h: [220, 255] }],
+  ['龍', { h: [160, 260] }], ['蟲', { h: [70, 110] }],
+];
+const PROMPTS = [
+  '「{H}」身上哪個部位，最能看出「{X}」的影響？',
+  '如果「{X}」和「{Y}」的特質互相衝突，牠會怎麼取捨？',
+  '玩家第一次在野外遇到牠，會先注意到什麼？',
+  '牠為什麼願意和人類締結契約？代價是什麼？',
+  '牠最怕什麼？弱點和「{X}」有關嗎？',
+  '還是幼體的時候，「{X}」的特徵長什麼樣子？',
+  '用一句話寫出牠的圖鑑說明。',
+  '牠的叫聲聽起來像什麼？',
+  '只畫剪影的話，玩家認得出牠是「{H}」嗎？',
+  '牠在群體裡扮演什麼角色？還是總是獨來獨往？',
+  '把「{X}」拿掉之後，牠還有辨識度嗎？',
+  '牠會怎麼對待自己的契約者？',
+  '牠吃什麼？「{H}」原本的飲食習慣還留著嗎？',
+  '「{X}」在戰鬥動畫裡要怎麼表現？',
+  '牠住在哪裡？那個地方為什麼適合「{X}」？',
+  '有沒有哪個傳說或民間故事跟牠有關？',
+];
+
+const svg = p => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+const dot = (x, y) => `<circle cx="${x}" cy="${y}" r="1.3" fill="currentColor" stroke="none"/>`;
+const ICON = {
+  dice: svg('<rect x="3" y="3" width="18" height="18" rx="4"/>' + dot(8, 8) + dot(16, 8) + dot(12, 12) + dot(8, 16) + dot(16, 16)),
+  lock: svg('<rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/>'),
+  unlock: svg('<rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7.5a4 4 0 0 1 7.6-1.7"/>'),
+  star: svg('<path d="M12 3.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.8l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/>'),
+  refresh: svg('<path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3.5V8h4.5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20.5V16h-4.5"/>'),
+  undo: svg('<path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>'),
+  copy: svg('<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h8"/>'),
+  save: svg('<path d="M6 3h12v18l-6-4-6 4z"/>'),
+  trash: svg('<path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/>'),
+  edit: svg('<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>'),
+  plus: svg('<path d="M12 5v14M5 12h14"/>'),
+  download: svg('<path d="M12 4v11"/><path d="M7 10l5 5 5-5"/><path d="M5 20h14"/>'),
+  upload: svg('<path d="M12 20V9"/><path d="M7 14l5-5 5 5"/><path d="M5 4h14"/>'),
+  book: svg('<path d="M4 4.5h5.5A2.5 2.5 0 0 1 12 7v13a2 2 0 0 0-2-2H4z"/><path d="M20 4.5h-5.5A2.5 2.5 0 0 0 12 7v13a2 2 0 0 1 2-2h6z"/>'),
+  sliders: svg('<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>'),
+  arrow: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  x: svg('<path d="M6 6l12 12M18 6L6 18"/>'),
+};
+
+// ---------- utilities ----------
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+const rand = n => Math.floor(Math.random() * n);
+const choice = arr => arr[rand(arr.length)];
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const clampInt = (v, lo, hi) => clamp(Math.floor(Number(v)) || 0, lo, hi);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const clone = v => JSON.parse(JSON.stringify(v));
+const isObj = v => !!v && typeof v === 'object' && !Array.isArray(v);
+const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const str = (v, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+const validName = n => !!n && !BAD_NAMES.includes(n);
+const label = c => c.replace(/^遊戲・/, '');
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const uniqTerms = arr => [...new Set(arr.filter(t => typeof t === 'string').map(t => t.trim().slice(0, 100)).filter(Boolean))];
+const parseTags = s => uniqTerms(String(s).split(/[,，、\s]+/)).map(t => t.slice(0, 20)).slice(0, 12);
+
+function el(tag, props, ...kids) {
+  const n = document.createElement(tag);
+  let late = null;
+  if (props) {
+    for (const k in props) {
+      const v = props[k];
+      if (v == null || v === false) continue;
+      if (k === 'class') n.className = v;
+      else if (k === 'text') n.textContent = v;
+      else if (k === 'html') n.innerHTML = v;
+      else if (k.startsWith('on') && typeof v === 'function') n.addEventListener(k.slice(2), v);
+      else if (k === 'value' || k === 'checked') (late || (late = {}))[k] = v;
+      else n.setAttribute(k, v === true ? '' : String(v));
+    }
+  }
+  for (const c of kids.flat(2)) {
+    if (c == null || c === false) continue;
+    n.append(c instanceof Node ? c : String(c));
+  }
+  if (late) Object.assign(n, late);
+  return n;
+}
+// replaceChildren() would print null as text and stringify arrays; this skips/flattens them.
+function fill(node, ...kids) {
+  node.replaceChildren(...kids.flat(2).filter(k => k != null && k !== false));
+}
+function iconBtn(name, title, onclick, cls = '', disabled = false) {
+  return el('button', { type: 'button', class: 'btn-icon ' + cls, title, 'aria-label': title, onclick, disabled, html: ICON[name] });
+}
+function btn(text, onclick, { icon, cls = '', disabled = false, title } = {}) {
+  return el('button', { type: 'button', class: 'btn ' + cls, onclick, disabled, title, html: (icon ? ICON[icon] : '') }, el('span', { text }));
+}
+function field(text, control, cls = '') {
+  return el('label', { class: 'fld ' + cls }, el('span', { text }), control);
+}
+
+function hslHex(h, s, l) {
+  h = ((h % 360) + 360) % 360; s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+  return '#' + [f(0), f(8), f(4)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('');
+}
+function contrast(hex) {
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.55 ? '#16121f' : '#ffffff';
+}
+function fmtDate(s) {
+  if (!s) return '';
+  const d = new Date(s);
+  return isNaN(d) ? s : d.toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+function timeAgo(t) {
+  const s = (Date.now() - t) / 1000;
+  if (!(s >= 0)) return '';
+  if (s < 60) return '剛剛';
+  if (s < 3600) return Math.floor(s / 60) + ' 分鐘前';
+  return new Date(t).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ---------- data model ----------
+function guessGroup(name) {
+  const seeded = SEED.categories && SEED.categories[name];
+  if (isObj(seeded) && GROUP_KEYS.includes(seeded.group)) return seeded.group;
+  if (name.startsWith('遊戲')) return 'game';
+  if (/^(動物|植物|物件)/.test(name)) return 'body';
+  if (/^(生態|外觀|戰鬥)/.test(name)) return 'hook';
+  return 'mod';
+}
+function normalizeCategory(raw) {
+  const group = GROUP_KEYS.includes(raw.group) ? raw.group : 'mod';
+  let weight = Number(raw.weight);
+  weight = Number.isFinite(weight) ? clamp(Math.round(weight), 0, 5) : 1;
+  const phrase = typeof raw.phrase === 'string' && raw.phrase.includes('{t}') ? raw.phrase.slice(0, 60) : DEFAULT_PHRASE[group];
+  return { group, weight, phrase, terms: Array.isArray(raw.terms) ? uniqTerms(raw.terms) : [] };
+}
+function normalizeRecipe(r) {
+  if (!isObj(r)) return null;
+  const slots = (Array.isArray(r.slots) ? r.slots : []).filter(isObj).slice(0, MAX_SLOTS).map((s, i) => {
+    const src = Array.isArray(s.src) ? [...new Set(s.src.filter(x => typeof x === 'string').map(x => x.slice(0, 40)))] : [];
+    return { role: str(s.role, 16) || '元素' + (i + 1), src: src.length ? src : ['@all'] };
+  });
+  if (!slots.length) return null;
+  return { id: str(r.id, 40) || uid(), name: str(r.name, 20) || '未命名配方', desc: str(r.desc, 80), hero: clampInt(r.hero, 0, slots.length - 1), slots };
+}
+function normalizePalette(p) {
+  if (!isObj(p) || !Array.isArray(p.colors)) return null;
+  const colors = p.colors.filter(c => typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c)).slice(0, 6);
+  return colors.length >= 2 ? { scheme: str(p.scheme, 10), colors } : null;
+}
+function normalizeEntry(e) {
+  if (!isObj(e) || !Array.isArray(e.slots)) return null;
+  const slots = e.slots.filter(isObj).slice(0, MAX_SLOTS)
+    .map(s => ({ term: str(s.term, 100), cat: str(s.cat, 40), role: str(s.role, 16) }))
+    .filter(s => s.term);
+  if (!slots.length) return null;
+  const profile = {};
+  if (isObj(e.profile)) {
+    for (const [k, v] of Object.entries(e.profile)) if (validName(k) && typeof v === 'string' && v) profile[k.slice(0, 40)] = v.slice(0, 100);
+  }
+  let evo = null;
+  if (isObj(e.evo) && isObj(e.evo.extra)) evo = { extra: { term: str(e.evo.extra.term, 100), cat: str(e.evo.extra.cat, 40) }, amp: str(e.evo.amp, 100) };
+  return {
+    id: str(e.id, 40) || uid(),
+    name: str(e.name, 40),
+    status: has(STATUS, e.status) ? e.status : 'idea',
+    tags: Array.isArray(e.tags) ? parseTags(e.tags.join(' ')) : [],
+    note: typeof e.note === 'string' ? e.note.slice(0, 10000) : '',
+    recipeId: str(e.recipeId, 40),
+    recipeName: str(e.recipeName, 20),
+    slots,
+    hero: clampInt(e.hero, 0, slots.length - 1),
+    profile,
+    palette: normalizePalette(e.palette),
+    evo,
+    created: str(e.created, 40),
+    updated: str(e.updated, 40),
+  };
+}
+function normalizeSettings(s) {
+  s = isObj(s) ? s : {};
+  return {
+    recipeId: str(s.recipeId, 40) || 'standard',
+    profileOff: Array.isArray(s.profileOff) ? s.profileOff.filter(x => typeof x === 'string' && validName(x)) : [],
+    followElement: s.followElement !== false,
+    showEvo: !!s.showEvo,
+    v1Dismissed: !!s.v1Dismissed,
+  };
+}
+function isV1(raw) {
+  return isObj(raw) && isObj(raw.categories) && !Array.isArray(raw.recipes) && Object.values(raw.categories).some(Array.isArray);
+}
+function normalizeData(raw) {
+  if (!isObj(raw) || !isObj(raw.categories)) throw Error('資料格式錯誤：缺少 categories');
+  const categories = {};
+  for (const [k, v] of Object.entries(raw.categories)) {
+    const name = str(k, 40);
+    if (!validName(name) || has(categories, name)) continue;
+    if (Array.isArray(v)) categories[name] = normalizeCategory({ group: guessGroup(name), terms: v });
+    else if (isObj(v)) categories[name] = normalizeCategory(v);
+  }
+  if (!Object.keys(categories).length) throw Error('資料內沒有有效分類');
+  let recipes = Array.isArray(raw.recipes) ? raw.recipes.map(normalizeRecipe).filter(Boolean) : [];
+  if (!recipes.length) recipes = SEED.recipes.map(normalizeRecipe).filter(Boolean);
+  const seen = new Set();
+  recipes.forEach(r => { while (seen.has(r.id)) r.id = uid(); seen.add(r.id); });
+  const dex = Array.isArray(raw.dex) ? raw.dex.map(normalizeEntry).filter(Boolean) : [];
+  return { version: 2, categories, recipes, dex, settings: normalizeSettings(raw.settings) };
+}
+function fromV1(raw) {
+  const categories = {};
+  for (const [k, v] of Object.entries(raw.categories)) {
+    const name = str(k, 40);
+    if (!validName(name) || !Array.isArray(v)) continue;
+    const removed = V1_REMOVED[name] || [];
+    categories[name] = { group: guessGroup(name), terms: v.filter(t => !removed.includes(t)) };
+  }
+  const dex = (Array.isArray(raw.saved) ? raw.saved : []).filter(x => isObj(x) && Array.isArray(x.terms)).map(x => ({
+    id: uid(), name: '', status: 'idea', tags: ['舊版'], note: x.note, recipeName: '舊版',
+    slots: x.terms.map((t, i) => ({ term: String(t), cat: Array.isArray(x.categories) ? String(x.categories[i] || '') : '', role: '元素' + (i + 1) })),
+    hero: x.hero, created: x.created, updated: x.created,
+  }));
+  return { categories, dex, recipes: [] };
+}
+const entryKey = e => e.slots.map(s => s.term).join('|') + '§' + e.note + '§' + e.created;
+function mergeData(base, inc) {
+  const res = { terms: 0, cats: 0, dex: 0, recipes: 0 };
+  for (const [name, c] of Object.entries(inc.categories || {})) {
+    if (!validName(name)) continue;
+    if (has(base.categories, name)) {
+      const cur = base.categories[name];
+      const before = cur.terms.length;
+      cur.terms = uniqTerms(cur.terms.concat(c.terms || []));
+      res.terms += cur.terms.length - before;
+    } else {
+      base.categories[name] = normalizeCategory(c);
+      res.cats++;
+      res.terms += base.categories[name].terms.length;
+    }
+  }
+  const ids = new Set(base.dex.map(e => e.id));
+  const keys = new Set(base.dex.map(entryKey));
+  for (const raw of inc.dex || []) {
+    const e = normalizeEntry(raw);
+    if (!e || ids.has(e.id) || keys.has(entryKey(e))) continue;
+    ids.add(e.id); keys.add(entryKey(e));
+    base.dex.push(e);
+    res.dex++;
+  }
+  for (const raw of inc.recipes || []) {
+    const r = normalizeRecipe(raw);
+    if (!r || base.recipes.some(x => x.id === r.id)) continue;
+    base.recipes.push(r);
+    res.recipes++;
+  }
+  return res;
+}
+
+// ---------- storage ----------
+const FILE_ID = str(SEED.fileId, 40) || 'base';
+const DATA_KEY = 'kiju-inspiration-v2-' + FILE_ID;
+const SESSION_KEY = DATA_KEY + '-session';
+const defaultData = () => normalizeData(clone(SEED));
+
+let data = null;
+try {
+  const raw = localStorage.getItem(DATA_KEY);
+  if (raw) {
+    try { data = normalizeData(JSON.parse(raw)); }
+    catch (e) { localStorage.setItem(DATA_KEY + '-broken-' + Date.now(), raw); }
+  }
+} catch (e) { /* storage unavailable */ }
+if (!data) data = defaultData();
+
+let saveTimer = 0;
+function persist() { clearTimeout(saveTimer); saveTimer = setTimeout(persistNow, 150); }
+function persistNow() {
+  clearTimeout(saveTimer); saveTimer = 0;
+  try { localStorage.setItem(DATA_KEY, JSON.stringify(data)); }
+  catch (e) { toast('瀏覽器儲存失敗，請盡快匯出 JSON 備份。'); }
+}
+
+// ---------- session state ----------
+const state = {
+  tab: 'roll',
+  recipeId: data.settings.recipeId,
+  slots: [],
+  hero: 0,
+  profile: {},
+  palette: null,
+  paletteLocked: false,
+  evo: null,
+  prompts: [],
+  form: { name: '', status: 'idea', tags: '', note: '' },
+  editingId: null,
+  savedSig: '',
+  history: [],
+  histIndex: 0,
+  showFieldPicker: false,
+  dexFilter: { q: '', status: 'all', sort: 'new' },
+  lexCat: '',
+  lexRecipe: '',
+  lexFilter: '',
+};
+let sessTimer = 0;
+function saveSession() { clearTimeout(sessTimer); sessTimer = setTimeout(writeSession, 250); }
+function writeSession() {
+  clearTimeout(sessTimer); sessTimer = 0;
+  const keep = ['tab', 'recipeId', 'slots', 'hero', 'profile', 'palette', 'paletteLocked', 'evo', 'prompts', 'form', 'editingId', 'savedSig', 'history', 'histIndex', 'lexCat', 'lexRecipe'];
+  try { localStorage.setItem(SESSION_KEY, JSON.stringify(Object.fromEntries(keep.map(k => [k, state[k]])))); } catch (e) { /* ignore */ }
+}
+function readEvo(v) {
+  return isObj(v) && isObj(v.extra) ? { extra: { term: str(v.extra.term, 100), cat: str(v.extra.cat, 40) }, amp: str(v.amp, 100) } : null;
+}
+function restoreSession() {
+  let s;
+  try { s = JSON.parse(localStorage.getItem(SESSION_KEY)); } catch (e) { return false; }
+  if (!isObj(s)) return false;
+  if (['roll', 'dex', 'lex', 'data'].includes(s.tab)) state.tab = s.tab;
+  if (typeof s.recipeId === 'string') state.recipeId = s.recipeId;
+  if (Array.isArray(s.slots)) {
+    state.slots = s.slots.filter(isObj).slice(0, MAX_SLOTS)
+      .map(x => ({ cat: str(x.cat, 40), term: str(x.term, 100), locked: !!x.locked, override: str(x.override, 40) }));
+  }
+  state.hero = clampInt(s.hero, 0, MAX_SLOTS - 1);
+  if (isObj(s.profile)) {
+    for (const [k, v] of Object.entries(s.profile)) if (validName(k) && isObj(v)) state.profile[k] = { term: str(v.term, 100), locked: !!v.locked };
+  }
+  state.palette = normalizePalette(s.palette);
+  state.paletteLocked = !!s.paletteLocked;
+  state.evo = readEvo(s.evo);
+  if (Array.isArray(s.prompts)) state.prompts = s.prompts.filter(x => typeof x === 'string').slice(0, 5);
+  if (isObj(s.form)) {
+    state.form = {
+      name: typeof s.form.name === 'string' ? s.form.name.slice(0, 40) : '',
+      status: has(STATUS, s.form.status) ? s.form.status : 'idea',
+      tags: typeof s.form.tags === 'string' ? s.form.tags.slice(0, 300) : '',
+      note: typeof s.form.note === 'string' ? s.form.note.slice(0, 10000) : '',
+    };
+  }
+  if (typeof s.editingId === 'string' && data.dex.some(e => e.id === s.editingId)) {
+    state.editingId = s.editingId;
+    state.savedSig = typeof s.savedSig === 'string' ? s.savedSig : '';
+  }
+  if (Array.isArray(s.history)) state.history = s.history.filter(h => isObj(h) && Array.isArray(h.slots)).slice(0, MAX_HISTORY);
+  state.histIndex = clampInt(s.histIndex, 0, Math.max(0, state.history.length - 1));
+  if (typeof s.lexCat === 'string') state.lexCat = s.lexCat;
+  if (typeof s.lexRecipe === 'string') state.lexRecipe = s.lexRecipe;
+  return state.slots.some(x => x.term);
+}
+
+// ---------- rolling ----------
+const cats = () => Object.keys(data.categories);
+const catsIn = g => cats().filter(c => data.categories[c].group === g);
+const recipe = () => data.recipes.find(r => r.id === state.recipeId) || data.recipes[0];
+
+function resolveSrc(src) {
+  const out = [];
+  for (const s of src) {
+    if (s === '@all') out.push(...cats().filter(c => data.categories[c].group !== 'game'));
+    else if (s.startsWith('@')) out.push(...catsIn(s.slice(1)));
+    else if (has(data.categories, s)) out.push(s);
+  }
+  return [...new Set(out)];
+}
+function srcLabel(src) {
+  return src.map(s => s === '@all' ? '全部' : s.startsWith('@') ? (GROUPS[s.slice(1)] || s) : s).join('、');
+}
+const slotSources = i => {
+  const s = state.slots[i];
+  return s.override ? [s.override] : resolveSrc((recipe().slots[i] || { src: ['@all'] }).src);
+};
+function weightedPick(items, weightOf) {
+  const total = items.reduce((a, x) => a + weightOf(x), 0);
+  if (total <= 0) return choice(items);
+  let r = Math.random() * total;
+  for (const x of items) { r -= weightOf(x); if (r < 0) return x; }
+  return items[items.length - 1];
+}
+// Pick a category first (by weight), then a term — so big categories don't crowd out small ones.
+function pickSlot(i) {
+  const s = state.slots[i];
+  const taken = new Set(state.slots.filter((x, j) => j !== i && x.term).map(x => x.term));
+  const sources = slotSources(i);
+  let pools = sources.map(c => ({ c, terms: data.categories[c].terms.filter(t => !taken.has(t)) })).filter(p => p.terms.length);
+  if (!pools.length) { s.term = ''; s.cat = sources[0] || ''; return; }
+  const fresh = pools.filter(p => p.terms.some(t => t !== s.term));
+  if (fresh.length) pools = fresh;
+  const pool = weightedPick(pools, p => data.categories[p.c].weight);
+  const opts = pool.terms.filter(t => t !== s.term);
+  s.cat = pool.c;
+  s.term = choice(opts.length ? opts : pool.terms);
+}
+function ensureSlots() {
+  const r = recipe();
+  state.recipeId = r.id;
+  while (state.slots.length < r.slots.length) state.slots.push({ cat: '', term: '', locked: false, override: '' });
+  state.slots.length = r.slots.length;
+  if (state.hero >= r.slots.length) state.hero = r.hero;
+  state.slots.forEach((s, i) => {
+    if (s.override && !has(data.categories, s.override)) s.override = '';
+    if (!s.term) pickSlot(i);
+  });
+  for (const k of Object.keys(state.profile)) if (!has(data.categories, k)) delete state.profile[k];
+}
+
+const profileCats = () => catsIn('game').filter(c => !data.settings.profileOff.includes(c));
+const elementCat = () => catsIn('game').find(c => c.includes('屬性'));
+const elementTerm = () => { const c = elementCat(); return c && state.profile[c] ? state.profile[c].term : ''; };
+function rollProfileField(c) {
+  const terms = data.categories[c].terms;
+  const cur = state.profile[c];
+  const opts = terms.filter(t => !cur || t !== cur.term);
+  state.profile[c] = { term: terms.length ? choice(opts.length ? opts : terms) : '', locked: cur ? cur.locked : false };
+}
+function paletteFor(element) {
+  const hit = element && data.settings.followElement ? ELEMENT_TONES.find(([k]) => element.includes(k)) : null;
+  const tone = hit ? hit[1] : null;
+  const h = tone ? tone.h[0] + Math.random() * (tone.h[1] - tone.h[0]) : Math.random() * 360;
+  const ds = (tone && tone.s) || 0, dl = (tone && tone.l) || 0;
+  const S = v => clamp(v + ds, 4, 95), L = v => clamp(v + dl, 8, 92);
+  const schemes = { 類似色: [0, 28, -32], 互補色: [0, 14, 180], 三分色: [0, 120, 240], 分裂互補: [0, 150, 210] };
+  const scheme = choice(Object.keys(schemes));
+  const o = schemes[scheme];
+  return {
+    scheme,
+    colors: [
+      hslHex(h + o[0], S(60 + rand(18)), L(50 + rand(12))),
+      hslHex(h + o[1], S(42 + rand(22)), L(68 + rand(12))),
+      hslHex(h + o[2], S(70 + rand(20)), L(54 + rand(10))),
+      hslHex(h - 15, S(28 + rand(16)), L(15 + rand(8))),
+    ],
+  };
+}
+function pickAmp() {
+  const others = state.slots.filter((s, i) => i !== state.hero && s.term).map(s => s.term);
+  return others.length ? choice(others) : ((state.slots[state.hero] || {}).term || '');
+}
+function rollEvo() {
+  const used = new Set(state.slots.map(s => s.term));
+  const pool = resolveSrc(['@hook']).flatMap(c => data.categories[c].terms.filter(t => !used.has(t)).map(t => ({ cat: c, term: t })));
+  state.evo = { extra: pool.length ? choice(pool) : { cat: '', term: '' }, amp: pickAmp() };
+}
+function fixEvo() {
+  if (!state.evo) { rollEvo(); return; }
+  const terms = state.slots.map(s => s.term);
+  const others = state.slots.filter((s, i) => i !== state.hero && s.term).map(s => s.term);
+  if (!(others.length ? others : terms).includes(state.evo.amp)) state.evo.amp = pickAmp();
+  if (!state.evo.extra.term || terms.includes(state.evo.extra.term)) {
+    const amp = state.evo.amp;
+    rollEvo();
+    state.evo.amp = amp;
+  }
+}
+function rollPrompts() {
+  const terms = state.slots.map(s => s.term).filter(Boolean);
+  const H = (state.slots[state.hero] || {}).term || terms[0] || '牠';
+  const others = terms.filter(t => t !== H);
+  const pool = PROMPTS.slice();
+  const out = [];
+  while (out.length < 3 && pool.length) {
+    const tpl = pool.splice(rand(pool.length), 1)[0];
+    if ((tpl.includes('{X}') && !others.length) || (tpl.includes('{Y}') && others.length < 2)) continue;
+    const X = others.length ? choice(others) : H;
+    const rest = others.filter(t => t !== X);
+    const Y = rest.length ? choice(rest) : H;
+    out.push(tpl.replaceAll('{H}', H).replaceAll('{X}', X).replaceAll('{Y}', Y));
+  }
+  state.prompts = out;
+}
+
+function snapshot() {
+  return clone({
+    recipeId: state.recipeId,
+    slots: state.slots.map(s => ({ cat: s.cat, term: s.term, override: s.override })),
+    hero: state.hero,
+    profile: Object.fromEntries(Object.entries(state.profile).map(([k, v]) => [k, v.term])),
+    palette: state.palette,
+    evo: state.evo,
+    prompts: state.prompts,
+    t: Date.now(),
+  });
+}
+function pushHistory() {
+  state.history.unshift(snapshot());
+  if (state.history.length > MAX_HISTORY) state.history.length = MAX_HISTORY;
+  state.histIndex = 0;
+}
+function changed({ history = true, anim = [] } = {}) {
+  if (history) pushHistory();
+  renderRoll(anim);
+  saveSession();
+}
+
+async function rollAll() {
+  if (state.editingId) {
+    if (isDirty()) {
+      const go = await ask('放棄未儲存的修改？', '你正在編輯的圖鑑條目還有修改沒有儲存。重新召喚會離開編輯模式。', [
+        { label: '取消', value: false },
+        { label: '放棄並召喚', value: true, danger: true },
+      ]);
+      if (!go) return;
+    }
+    state.editingId = null;
+    state.savedSig = '';
+    state.form = { name: '', status: 'idea', tags: '', note: '' };
+    renderForm();
+  }
+  ensureSlots();
+  const anim = [];
+  state.slots.forEach((s, i) => { if (!s.locked) { pickSlot(i); anim.push(i); } });
+  profileCats().forEach(c => { if (!state.profile[c] || !state.profile[c].locked) rollProfileField(c); });
+  if (!state.paletteLocked) state.palette = paletteFor(elementTerm());
+  rollEvo();
+  rollPrompts();
+  changed({ anim });
+}
+function rerollSlot(i) {
+  if (!state.slots[i]) return;
+  if (state.slots[i].locked) { toast(`第 ${i + 1} 格已鎖定（Shift+${i + 1} 解鎖）`); return; }
+  pickSlot(i);
+  fixEvo();
+  rollPrompts();
+  changed({ anim: [i] });
+}
+function toggleLock(i) {
+  if (!state.slots[i]) return;
+  state.slots[i].locked = !state.slots[i].locked;
+  changed({ history: false });
+}
+function setHero(i) {
+  if (state.hero === i) return;
+  state.hero = i;
+  fixEvo();
+  rollPrompts();
+  changed();
+}
+function selectRecipe(id) {
+  if (id === state.recipeId) return;
+  state.recipeId = id;
+  data.settings.recipeId = id;
+  persist();
+  const r = recipe();
+  state.slots.forEach(s => { s.override = ''; });
+  state.hero = r.hero;
+  ensureSlots();
+  const anim = [];
+  state.slots.forEach((s, i) => { if (!s.locked) { pickSlot(i); anim.push(i); } });
+  fixEvo();
+  rollPrompts();
+  changed({ anim });
+}
+function rerollProfile() {
+  profileCats().forEach(c => { if (!state.profile[c] || !state.profile[c].locked) rollProfileField(c); });
+  if (!state.paletteLocked) state.palette = paletteFor(elementTerm());
+  changed();
+}
+function rerollPalette() {
+  if (state.paletteLocked) { toast('配色已鎖定'); return; }
+  state.palette = paletteFor(elementTerm());
+  changed();
+}
+function restore(i) {
+  const h = state.history[i];
+  if (!h) return;
+  if (typeof h.recipeId === 'string' && data.recipes.some(r => r.id === h.recipeId)) state.recipeId = h.recipeId;
+  const r = recipe();
+  state.slots = r.slots.map((_, j) => {
+    const x = isObj(h.slots[j]) ? h.slots[j] : {};
+    const prev = state.slots[j];
+    return { cat: str(x.cat, 40), term: str(x.term, 100), override: str(x.override, 40), locked: prev ? prev.locked : false };
+  });
+  state.hero = clampInt(h.hero, 0, r.slots.length - 1);
+  if (isObj(h.profile)) {
+    for (const [k, v] of Object.entries(h.profile)) {
+      if (validName(k) && typeof v === 'string' && has(data.categories, k)) state.profile[k] = { term: v, locked: state.profile[k] ? state.profile[k].locked : false };
+    }
+  }
+  state.palette = normalizePalette(h.palette) || state.palette;
+  state.evo = readEvo(h.evo) || state.evo;
+  if (Array.isArray(h.prompts)) state.prompts = h.prompts.filter(x => typeof x === 'string');
+  state.histIndex = i;
+  ensureSlots();
+  renderRoll();
+  saveSession();
+}
+function undo() {
+  if (state.histIndex < state.history.length - 1) restore(state.histIndex + 1);
+  else toast('沒有更早的紀錄了');
+}
+
+// ---------- entries ----------
+function currentEntry() {
+  const r = recipe();
+  const slots = [];
+  let hero = 0;
+  state.slots.forEach((s, i) => {
+    if (!s.term) return;
+    if (i === state.hero) hero = slots.length;
+    slots.push({ term: s.term, cat: s.cat, role: r.slots[i] ? r.slots[i].role : '' });
+  });
+  const profile = {};
+  profileCats().forEach(c => { const f = state.profile[c]; if (f && f.term) profile[c] = f.term; });
+  return {
+    name: state.form.name.trim(),
+    status: state.form.status,
+    tags: parseTags(state.form.tags),
+    note: state.form.note,
+    recipeId: r.id,
+    recipeName: r.name,
+    slots,
+    hero,
+    profile,
+    palette: state.palette ? clone(state.palette) : null,
+    evo: data.settings.showEvo && state.evo && slots.length ? clone(state.evo) : null,
+  };
+}
+const sig = e => JSON.stringify(e);
+const isDirty = () => !!state.editingId && sig(currentEntry()) !== state.savedSig;
+const summaryOf = e => e.slots.map(s => s.term).join(' × ');
+
+function phraseParts(tpl, term) {
+  const i = tpl.indexOf('{t}');
+  return i < 0 ? [tpl, { b: term }] : [tpl.slice(0, i), { b: term }, tpl.slice(i + 3)];
+}
+function describe(e) {
+  const slots = e.slots.filter(s => s.term);
+  if (!slots.length) return { segs: [], text: '' };
+  const hi = Math.min(e.hero, slots.length - 1);
+  const H = slots[hi];
+  const hc = data.categories[H.cat];
+  const clauses = [phraseParts(!hc || hc.group === 'body' ? '以「{t}」為原型' : '以「{t}」為核心概念', H.term)];
+  slots.forEach((s, i) => {
+    if (i === hi) return;
+    const c = data.categories[s.cat];
+    clauses.push(phraseParts(c ? c.phrase : '帶有「{t}」的要素', s.term));
+  });
+  const segs = ['一隻'];
+  clauses.forEach((c, i) => { if (i) segs.push('、'); segs.push(...c); });
+  segs.push('的契獸。');
+  return { segs, text: segs.map(x => (typeof x === 'string' ? x : x.b)).join('') };
+}
+function evoText(e) {
+  if (!e.evo) return '';
+  const H = (e.slots[e.hero] || {}).term || '';
+  const X = (e.slots.find((s, i) => i !== e.hero) || {}).term;
+  return `進化：幼體（${H}${X ? '＋' + X : ''}）→ 成體 → 終極（放大「${e.evo.amp}」${e.evo.extra.term ? `，覺醒「${e.evo.extra.term}」` : ''}）`;
+}
+function entryText(e) {
+  const lines = [];
+  if (e.name) lines.push(`【${e.name}】`);
+  lines.push(e.slots.map((s, i) => (i === e.hero ? '★' : '') + s.term + (s.cat ? `（${s.cat}）` : '')).join(' × '));
+  lines.push(describe(e).text);
+  const prof = Object.entries(e.profile).map(([k, v]) => `${label(k)}：${v}`);
+  if (prof.length) lines.push(prof.join('｜'));
+  if (e.palette) lines.push(`配色（${e.palette.scheme}）：${e.palette.colors.join(' ')}`);
+  if (e.evo) lines.push(evoText(e));
+  if (e.tags && e.tags.length) lines.push('標籤：' + e.tags.join('、'));
+  if (e.note) lines.push('', e.note);
+  return lines.join('\n');
+}
+function usage(includeEditing = false) {
+  const terms = new Map(), prof = new Map();
+  for (const e of data.dex) {
+    if (!includeEditing && e.id === state.editingId) continue;
+    e.slots.forEach(s => terms.set(s.term, (terms.get(s.term) || 0) + 1));
+    for (const [k, v] of Object.entries(e.profile)) {
+      if (!prof.has(k)) prof.set(k, new Map());
+      prof.get(k).set(v, (prof.get(k).get(v) || 0) + 1);
+    }
+  }
+  return { terms, prof };
+}
+
+function saveNew() {
+  const e = currentEntry();
+  if (!e.slots.length) { toast('請先召喚出組合'); return; }
+  const now = new Date().toISOString();
+  const entry = normalizeEntry({ ...e, id: uid(), created: now, updated: now });
+  data.dex.push(entry);
+  state.editingId = entry.id;
+  state.savedSig = sig(currentEntry());
+  persist();
+  renderAfterSave();
+  toast(`已收入圖鑑：${entry.name || summaryOf(entry)}`);
+}
+function updateEntry() {
+  const idx = data.dex.findIndex(x => x.id === state.editingId);
+  if (idx < 0) { saveNew(); return; }
+  const old = data.dex[idx];
+  data.dex[idx] = normalizeEntry({ ...currentEntry(), id: old.id, created: old.created, updated: new Date().toISOString() });
+  state.savedSig = sig(currentEntry());
+  persist();
+  renderAfterSave();
+  toast('已更新圖鑑條目');
+}
+function saveAction() { state.editingId ? updateEntry() : saveNew(); }
+function renderAfterSave() { renderForm(); renderSlots(); renderProfile(); renderDexCount(); saveSession(); }
+async function cancelEdit() {
+  if (isDirty()) {
+    const go = await ask('離開編輯？', '這個條目還有修改沒有儲存。', [{ label: '繼續編輯', value: false }, { label: '放棄修改', value: true, danger: true }]);
+    if (!go) return;
+  }
+  state.editingId = null;
+  state.savedSig = '';
+  state.form = { name: '', status: 'idea', tags: '', note: '' };
+  renderForm(); renderSlots(); renderProfile(); saveSession();
+}
+async function loadEntry(id) {
+  const e = data.dex.find(x => x.id === id);
+  if (!e) return;
+  if (isDirty() && state.editingId !== id) {
+    const go = await ask('載入其他條目？', '目前編輯中的條目還有修改沒有儲存。', [{ label: '取消', value: false }, { label: '放棄並載入', value: true, danger: true }]);
+    if (!go) return;
+  }
+  let r = data.recipes.find(x => x.id === e.recipeId);
+  if (!r || r.slots.length !== e.slots.length) r = data.recipes.find(x => x.slots.length === e.slots.length) || r || recipe();
+  state.recipeId = r.id;
+  state.slots = r.slots.map((_, i) => {
+    const s = e.slots[i];
+    return { cat: s ? s.cat : '', term: s ? s.term : '', locked: false, override: '' };
+  });
+  state.hero = Math.min(e.hero, r.slots.length - 1);
+  const off = data.settings.profileOff;
+  catsIn('game').forEach(c => {
+    state.profile[c] = { term: e.profile[c] || '', locked: false };
+    if (e.profile[c] && off.includes(c)) off.splice(off.indexOf(c), 1);
+  });
+  state.palette = e.palette ? clone(e.palette) : null;
+  state.evo = e.evo ? clone(e.evo) : null;
+  if (e.evo) data.settings.showEvo = true;
+  persist();
+  state.form = { name: e.name, status: e.status, tags: e.tags.join('、'), note: e.note };
+  ensureSlots();
+  rollPrompts();
+  state.editingId = e.id;
+  state.savedSig = sig(currentEntry());
+  pushHistory();
+  setTab('roll');
+  window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+  toast(`正在編輯：${e.name || summaryOf(e)}`);
+}
+function deleteEntry(id) {
+  const idx = data.dex.findIndex(x => x.id === id);
+  if (idx < 0) return;
+  const [removed] = data.dex.splice(idx, 1);
+  if (state.editingId === id) { state.editingId = null; state.savedSig = ''; }
+  persist();
+  renderDex(); renderDexCount(); renderForm();
+  toast(`已刪除「${removed.name || summaryOf(removed)}」`, {
+    action: '復原',
+    onAction: () => {
+      data.dex.splice(Math.min(idx, data.dex.length), 0, removed);
+      persist(); renderDex(); renderDexCount();
+    },
+  });
+}
+
+// ---------- render: roll view ----------
+function renderRoll(anim = []) {
+  renderRecipeBar();
+  renderSlots(anim);
+  renderProfile();
+  renderDesc();
+  renderEvo();
+  renderHistory();
+  updateFormStatus();
+}
+function renderRecipeBar() {
+  const r = recipe();
+  fill($('#recipePills'), ...data.recipes.map(x => el('button', {
+    type: 'button', class: 'pill' + (x.id === r.id ? ' active' : ''), text: x.name, title: x.desc, onclick: () => selectRecipe(x.id),
+  })));
+  $('#recipeDesc').textContent = r.desc || '';
+  $('#undoBtn').disabled = state.histIndex >= state.history.length - 1;
+}
+function renderSlots(anim = []) {
+  const r = recipe();
+  const u = usage();
+  const wrap = $('#slots');
+  const n = state.slots.length;
+  wrap.className = 'slots c' + Math.min(n, 4) + (n % 2 ? ' odd' : '');
+  fill(wrap, ...state.slots.map((s, i) => slotCard(i, r, u)));
+  anim.forEach(animateSlot);
+}
+function slotCard(i, r, u) {
+  const s = state.slots[i];
+  const rs = r.slots[i] || { role: '元素' + (i + 1), src: ['@all'] };
+  const hero = state.hero === i;
+  const used = s.term ? u.terms.get(s.term) || 0 : 0;
+  const sel = el('select', {
+    'aria-label': '抽取來源',
+    onchange: e => { s.override = e.target.value; pickSlot(i); fixEvo(); rollPrompts(); changed({ anim: [i] }); },
+  },
+  el('option', { value: '', text: '依配方：' + srcLabel(rs.src) }),
+  GROUP_KEYS.map(g => {
+    const list = catsIn(g);
+    return list.length ? el('optgroup', { label: GROUPS[g] }, list.map(c => el('option', { value: c, text: c }))) : null;
+  }));
+  sel.value = s.override;
+  return el('article', { class: 'slot' + (hero ? ' hero' : '') + (s.locked ? ' locked' : '') },
+    el('div', { class: 'slot-head' },
+      el('span', { class: 'role' }, el('kbd', { text: String(i + 1) }), rs.role, hero ? el('span', { class: 'hero-tag', text: '主體' }) : null),
+      el('div', { class: 'slot-tools' },
+        iconBtn('star', hero ? '目前的主體' : '設為主體', () => setHero(i), 'star' + (hero ? ' on' : '')),
+        iconBtn(s.locked ? 'lock' : 'unlock', (s.locked ? '解除鎖定' : '鎖定') + `（Shift+${i + 1}）`, () => toggleLock(i), 'lock' + (s.locked ? ' on' : '')))),
+    el('div', { class: 'slot-face' },
+      el('div', { class: 'term' + ((s.term || '').length > 5 ? ' long' : ''), text: s.term || '（沒有可用詞彙）' }),
+      el('div', { class: 'cat', text: s.cat }),
+      used ? el('span', { class: 'used', text: `圖鑑已用 ${used} 次` }) : null),
+    sel,
+    el('div', { class: 'slot-foot' }, btn('重抽', () => rerollSlot(i), { icon: 'refresh', cls: 'btn-sm', disabled: s.locked, title: `重抽這一格（${i + 1}）` })));
+}
+function animateSlot(i) {
+  const card = $('#slots').children[i];
+  if (!card || reduceMotion()) return;
+  const term = $('.term', card);
+  const final = term.textContent;
+  const pool = slotSources(i).flatMap(c => data.categories[c].terms);
+  if (pool.length < 2) return;
+  let n = 0;
+  term.classList.add('spin');
+  const timer = setInterval(() => {
+    if (++n >= 8 || !term.isConnected) {
+      clearInterval(timer);
+      term.textContent = final;
+      term.classList.remove('spin');
+      term.classList.add('land');
+      card.classList.add('flash');
+      return;
+    }
+    term.textContent = choice(pool);
+  }, 45);
+}
+function renderProfile() {
+  const fields = profileCats();
+  fields.forEach(c => { if (!state.profile[c]) rollProfileField(c); });
+  const u = usage();
+  const head = el('div', { class: 'panel-head' },
+    el('h2', { text: '契獸檔案' }),
+    el('div', { class: 'head-actions' },
+      btn('欄位', () => { state.showFieldPicker = !state.showFieldPicker; renderProfile(); }, { icon: 'sliders', cls: 'btn-sm btn-ghost' + (state.showFieldPicker ? ' on' : '') }),
+      btn('重抽檔案', rerollProfile, { icon: 'refresh', cls: 'btn-sm' })));
+  const picker = state.showFieldPicker ? el('div', { class: 'field-picker' },
+    catsIn('game').length
+      ? catsIn('game').map(c => el('button', { type: 'button', class: 'src-chip' + (fields.includes(c) ? ' on' : ''), text: label(c), onclick: () => toggleField(c) }))
+      : el('span', { class: 'muted small', text: '詞庫中沒有「遊戲設定」群組的分類。' }),
+    el('label', { class: 'check' },
+      el('input', { type: 'checkbox', checked: data.settings.followElement, onchange: e => { data.settings.followElement = e.target.checked; persist(); } }),
+      '配色跟隨屬性')) : null;
+  const grid = fields.length ? el('div', { class: 'fields' }, fields.map(c => {
+    const f = state.profile[c];
+    const n = f.term ? ((u.prof.get(c) || new Map()).get(f.term) || 0) : 0;
+    return el('div', { class: 'field' + (f.locked ? ' locked' : '') },
+      el('div', { class: 'field-label' },
+        el('span', { text: label(c) }),
+        iconBtn(f.locked ? 'lock' : 'unlock', f.locked ? '解除鎖定' : '鎖定', () => { f.locked = !f.locked; changed({ history: false }); }, 'tiny lock' + (f.locked ? ' on' : ''))),
+      el('button', {
+        type: 'button', class: 'field-value', title: f.locked ? '已鎖定' : '點擊重抽', disabled: f.locked, text: f.term || '—',
+        onclick: () => {
+          rollProfileField(c);
+          if (c === elementCat() && data.settings.followElement && !state.paletteLocked) state.palette = paletteFor(elementTerm());
+          changed();
+        },
+      }),
+      n ? el('span', { class: 'field-hint', text: `圖鑑中已有 ${n} 隻` }) : null);
+  })) : el('p', { class: 'muted small', text: '目前沒有開啟任何欄位，按「欄位」挑選要顯示的設定。' });
+  fill($('#profilePanel'), head, picker, grid, paletteBlock());
+}
+function paletteBlock() {
+  const p = state.palette;
+  const names = ['主色', '副色', '點綴', '陰影'];
+  return el('div', { class: 'palette-block' },
+    el('div', { class: 'field-label' },
+      el('span', { text: '配色' + (p ? '・' + p.scheme : '') + '（點色塊可複製色碼）' }),
+      el('div', { class: 'head-actions' },
+        iconBtn(state.paletteLocked ? 'lock' : 'unlock', state.paletteLocked ? '解除鎖定配色' : '鎖定配色', () => { state.paletteLocked = !state.paletteLocked; changed({ history: false }); }, 'tiny lock' + (state.paletteLocked ? ' on' : '')),
+        iconBtn('refresh', '重抽配色（P）', rerollPalette, 'tiny', state.paletteLocked))),
+    p
+      ? el('div', { class: 'palette' }, p.colors.map((c, i) => el('button', {
+          type: 'button', class: 'swatch', style: `background:${c};color:${contrast(c)}`, title: '複製 ' + c,
+          onclick: () => copyText(c, '已複製 ' + c),
+        }, el('span', { text: names[i] || '' }), el('code', { text: c }))))
+      : btn('產生配色', rerollPalette, { icon: 'refresh', cls: 'btn-sm' }));
+}
+function toggleField(c) {
+  const off = data.settings.profileOff;
+  const i = off.indexOf(c);
+  if (i >= 0) off.splice(i, 1); else off.push(c);
+  persist();
+  changed({ history: false });
+}
+function highlight(text) {
+  return text.split(/(「[^」]*」)/).map((part, i) => (i % 2 ? el('em', { class: 'hl', text: part }) : part));
+}
+function renderDesc() {
+  const e = currentEntry();
+  const d = describe(e);
+  const prof = Object.entries(e.profile).map(([k, v]) => `${label(k)}：${v}`).join('｜');
+  fill($('#descPanel'), 
+    el('div', { class: 'panel-head' },
+      el('h2', { text: '設計描述' }),
+      btn('複製', () => copyText(d.text + (prof ? '\n' + prof : ''), '已複製設計描述'), { icon: 'copy', cls: 'btn-sm btn-ghost' })),
+    el('p', { class: 'sentence' }, d.segs.map(x => (typeof x === 'string' ? x : el('b', { text: x.b })))),
+    prof ? el('p', { class: 'profile-line', text: prof }) : null,
+    el('div', { class: 'prompts-head' },
+      el('h3', { text: '追問：逼自己再想深一點' }),
+      btn('換一批', () => { rollPrompts(); renderDesc(); saveSession(); }, { icon: 'refresh', cls: 'btn-sm btn-ghost', title: 'Q' })),
+    el('ol', { class: 'prompts' }, state.prompts.map(p => el('li', null, highlight(p)))));
+}
+function renderEvo() {
+  const on = data.settings.showEvo;
+  const toggle = el('label', { class: 'switch' },
+    el('input', {
+      type: 'checkbox', checked: on,
+      onchange: e => {
+        data.settings.showEvo = e.target.checked;
+        if (e.target.checked && !state.evo) rollEvo();
+        persist();
+        changed({ history: false });
+      },
+    }),
+    el('span', { class: 'track' }), el('span', { text: '顯示' }));
+  const head = el('div', { class: 'panel-head' },
+    el('h2', { text: '進化構想' }),
+    el('div', { class: 'head-actions' },
+      on ? btn('重抽', () => { rollEvo(); changed(); }, { icon: 'refresh', cls: 'btn-sm btn-ghost' }) : null,
+      toggle));
+  const panel = $('#evoPanel');
+  const terms = state.slots.filter(s => s.term).map(s => s.term);
+  if (!on || !terms.length) {
+    fill(panel, head, el('p', { class: 'muted small', text: '開啟後，會把目前的組合拆成「幼體 → 成體 → 終極」三個階段，終極型會額外覺醒一個新特徵。' }));
+    return;
+  }
+  if (!state.evo) rollEvo();
+  const H = (state.slots[state.hero] || {}).term || terms[0];
+  const others = terms.filter(t => t !== H);
+  const ev = state.evo;
+  const chip = (t, cls = '') => el('span', { class: 'chip ' + cls, text: t });
+  const stage = (name, chips, text) => el('div', { class: 'evo-stage' }, el('h4', { text: name }), el('div', { class: 'chips' }, chips), el('p', { text }));
+  const arrow = () => el('div', { class: 'evo-arrow', html: ICON.arrow });
+  fill(panel, head, el('div', { class: 'evo' },
+    stage('幼體', [chip(H, 'hero'), others[0] ? chip(others[0]) : null],
+      `只保留「${H}」的基本輪廓${others[0] ? `，「${others[0]}」的特徵才剛萌芽` : ''}。`),
+    arrow(),
+    stage('成體', terms.map(t => chip(t, t === H ? 'hero' : '')), '完整的組合型態，所有特徵到齊。'),
+    arrow(),
+    stage('終極', [terms.map(t => chip(t, t === ev.amp ? 'amp' : t === H ? 'hero' : '')), ev.extra.term ? chip('＋' + ev.extra.term, 'new') : null],
+      `放大「${ev.amp}」${ev.extra.term ? `，並覺醒新特徵「${ev.extra.term}」` : ''}。`)));
+}
+function renderForm() {
+  const f = state.form;
+  const editing = state.editingId ? data.dex.find(e => e.id === state.editingId) : null;
+  if (state.editingId && !editing) { state.editingId = null; state.savedSig = ''; }
+  const onInput = key => e => { f[key] = e.target.value; updateFormStatus(); saveSession(); };
+  const seg = el('div', { class: 'seg', role: 'group', 'aria-label': '狀態' }, Object.entries(STATUS).map(([k, v]) => el('button', {
+    type: 'button', class: 'st-' + k + (f.status === k ? ' on' : ''), text: v,
+    onclick: e => {
+      f.status = k;
+      $$('button', e.currentTarget.parentNode).forEach(b => b.classList.toggle('on', b === e.currentTarget));
+      updateFormStatus(); saveSession();
+    },
+  })));
+  const actions = editing
+    ? [btn('更新條目', updateEntry, { icon: 'save', cls: 'btn-primary', title: 'S' }), btn('另存為新條目', saveNew, { icon: 'plus' }), btn('離開編輯', cancelEdit, { cls: 'btn-ghost' })]
+    : [btn('收入圖鑑', saveNew, { icon: 'save', cls: 'btn-primary', title: 'S' })];
+  fill($('#formPanel'), 
+    el('div', { class: 'panel-head' }, el('h2', { text: editing ? '編輯圖鑑條目' : '收入圖鑑' }), el('span', { id: 'formStatus', class: 'form-status' })),
+    el('div', { class: 'form-grid' },
+      field('名稱', el('input', { type: 'text', maxlength: 40, placeholder: '替牠取個名字（可留白）', value: f.name, oninput: onInput('name') })),
+      el('div', { class: 'fld' }, el('span', { text: '狀態' }), seg),
+      field('標籤', el('input', { type: 'text', placeholder: '用逗號或空白分隔，例如：第一章、森林、Boss', value: f.tags, oninput: onInput('tags') }), 'span2'),
+      field('設計筆記', el('textarea', { rows: 4, placeholder: '外型輪廓、技能、在故事裡的位置……', value: f.note, oninput: onInput('note') }), 'span2')),
+    el('div', { class: 'form-actions' },
+      actions,
+      el('span', { class: 'spacer' }),
+      btn('複製完整內容', () => copyText(entryText(currentEntry()), '已複製完整內容'), { icon: 'copy', cls: 'btn-ghost' }),
+      btn('清空', () => { state.form = { name: '', status: 'idea', tags: '', note: '' }; renderForm(); saveSession(); }, { cls: 'btn-ghost' })));
+  updateFormStatus();
+}
+function updateFormStatus() {
+  const s = $('#formStatus');
+  if (!s) return;
+  if (!state.editingId) { s.className = 'form-status'; s.textContent = '新條目'; return; }
+  const dirty = isDirty();
+  s.className = 'form-status ' + (dirty ? 'dirty' : 'editing');
+  s.textContent = dirty ? '有未儲存的修改' : '已儲存';
+}
+function renderHistory() {
+  const box = $('#history');
+  $('#undoBtn').disabled = state.histIndex >= state.history.length - 1;
+  if (!state.history.length) { fill(box, el('p', { class: 'muted small', text: '還沒有紀錄。' })); return; }
+  fill(box, ...state.history.map((h, i) => el('button', { type: 'button', class: 'hist-item' + (i === state.histIndex ? ' current' : ''), onclick: () => restore(i) },
+    el('span', { class: 'hist-terms', text: h.slots.map((s, j) => (j === h.hero ? '★' : '') + (s.term || '—')).join(' × ') }),
+    el('span', { class: 'hist-meta' },
+      h.palette && Array.isArray(h.palette.colors) ? el('span', { class: 'dots' }, h.palette.colors.filter(c => /^#[0-9a-f]{6}$/i.test(c)).map(c => el('i', { style: 'background:' + c }))) : el('span'),
+      el('small', { text: timeAgo(h.t) })))));
+}
+
+// ---------- render: dex view ----------
+function renderDexCount() { $('#dexCount').textContent = String(data.dex.length); }
+function filteredDex() {
+  const f = state.dexFilter;
+  const q = f.q.trim().toLowerCase();
+  let list = data.dex.slice();
+  if (f.status !== 'all') list = list.filter(e => e.status === f.status);
+  if (q) list = list.filter(e => [e.name, e.note, ...e.tags, ...e.slots.map(s => s.term), ...Object.values(e.profile)].join(' ').toLowerCase().includes(q));
+  if (f.sort === 'new') list.reverse();
+  else if (f.sort === 'name') list.sort((a, b) => (a.name || summaryOf(a)).localeCompare(b.name || summaryOf(b), 'zh-Hant'));
+  return list;
+}
+function renderDex() {
+  const f = state.dexFilter;
+  const counts = { all: data.dex.length };
+  Object.keys(STATUS).forEach(k => { counts[k] = data.dex.filter(e => e.status === k).length; });
+  fill($('#dexStatusSeg'), ...[['all', '全部'], ...Object.entries(STATUS)].map(([k, v]) => el('button', {
+    type: 'button', class: 'st-' + k + (f.status === k ? ' on' : ''), onclick: () => { f.status = k; renderDex(); },
+  }, v, el('span', { class: 'n', text: String(counts[k]) }))));
+  renderStats();
+  const list = filteredDex();
+  const grid = $('#dexGrid');
+  if (!data.dex.length) {
+    fill(grid, el('div', { class: 'empty', style: 'grid-column:1/-1' },
+      el('strong', { text: '圖鑑還是空的' }),
+      '到「召喚」抽一組喜歡的組合，按「收入圖鑑」就會出現在這裡。'));
+    return;
+  }
+  if (!list.length) {
+    fill(grid, el('div', { class: 'empty', style: 'grid-column:1/-1' }, el('strong', { text: '沒有符合的條目' }), '換個關鍵字或狀態試試。'));
+    return;
+  }
+  fill(grid, ...list.map(dexCard));
+}
+function dexCard(e) {
+  const prof = Object.values(e.profile).filter(Boolean).join('｜');
+  const sel = el('select', {
+    class: 'status-select st-' + e.status, 'aria-label': '狀態',
+    onchange: ev => {
+      const wasClean = state.editingId === e.id && !isDirty();
+      e.status = ev.target.value;
+      e.updated = new Date().toISOString();
+      if (state.editingId === e.id) {
+        state.form.status = e.status;
+        if (wasClean) state.savedSig = sig(currentEntry());
+        renderForm();
+      }
+      persist(); renderDex();
+    },
+  }, Object.entries(STATUS).map(([k, v]) => el('option', { value: k, text: v })));
+  sel.value = e.status;
+  return el('article', { class: 'dex-card' + (e.id === state.editingId ? ' editing' : '') },
+    el('div', { class: 'strip' }, (e.palette ? e.palette.colors : ['#2a3159']).map(c => el('span', { style: 'background:' + c }))),
+    el('div', { class: 'dex-body' },
+      el('div', { class: 'dex-top' }, el('h3', { class: 'dex-name', text: e.name || summaryOf(e) }), sel),
+      el('div', { class: 'chips' }, e.slots.map((s, i) => el('span', { class: 'chip' + (i === e.hero ? ' hero' : ''), title: s.cat, text: (i === e.hero ? '★ ' : '') + s.term }))),
+      prof ? el('div', { class: 'dex-prof', text: prof }) : null,
+      e.tags.length ? el('div', { class: 'tags' }, e.tags.map(t => el('button', {
+        type: 'button', class: 'tag', text: '#' + t,
+        onclick: () => { state.dexFilter.q = t; $('#dexSearch').value = t; renderDex(); },
+      }))) : null,
+      e.note ? el('p', { class: 'note', text: e.note }) : null,
+      el('div', { class: 'dex-foot' },
+        el('small', { text: fmtDate(e.created) }),
+        el('div', { class: 'head-actions' },
+          iconBtn('edit', '載入編輯', () => loadEntry(e.id)),
+          iconBtn('copy', '複製文字', () => copyText(entryText(e), '已複製')),
+          iconBtn('trash', '刪除', () => deleteEntry(e.id), 'danger')))));
+}
+function renderStats() {
+  const box = $('#dexStats');
+  if (!data.dex.length) { box.hidden = true; return; }
+  box.hidden = false;
+  const u = usage(true);
+  const bars = (title, entries) => {
+    const max = Math.max(1, ...entries.map(x => x[1]));
+    return el('div', null, el('h4', { text: title }), el('div', { class: 'bars' }, entries.map(([k, v]) => el('div', { class: 'bar-row' },
+      el('span', { text: k, title: k }),
+      el('div', { class: 'bar' }, el('i', { style: `width:${(v / max) * 100}%` })),
+      el('span', { text: String(v) })))));
+  };
+  const blocks = [bars('最常用的詞', [...u.terms.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10))];
+  catsIn('game').forEach(c => {
+    const m = u.prof.get(c);
+    if (m && m.size) blocks.push(bars(label(c) + '分布', [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8)));
+  });
+  const done = data.dex.filter(e => e.status === 'done').length;
+  $('#dexStatsSum').textContent = `共 ${data.dex.length} 隻・完成 ${done} 隻`;
+  fill($('#dexStatsBody'), ...blocks);
+}
+
+// ---------- render: lexicon view ----------
+function renderLex() {
+  if (!has(data.categories, state.lexCat)) { state.lexCat = cats()[0]; state.lexFilter = ''; }
+  renderCatNav();
+  renderCatEditor();
+  renderRecipeEditor();
+}
+function renderCatNav() {
+  const input = el('input', { type: 'text', maxlength: 40, placeholder: '新分類名稱', 'aria-label': '新分類名稱' });
+  const form = el('form', {
+    class: 'add-cat',
+    onsubmit: e => {
+      e.preventDefault();
+      const name = str(input.value, 40);
+      if (!validName(name) || has(data.categories, name)) { toast('分類名稱是空的、已經存在，或不能使用'); return; }
+      data.categories[name] = normalizeCategory({ group: guessGroup(name), terms: [] });
+      state.lexCat = name; state.lexFilter = '';
+      persist(); renderLex();
+      toast(`已新增分類「${name}」`);
+    },
+  }, input, el('button', { type: 'submit', class: 'btn btn-sm', html: ICON.plus, title: '新增分類', 'aria-label': '新增分類' }));
+  fill($('#catNav'), 
+    el('h2', { text: '分類' }),
+    GROUP_KEYS.map(g => {
+      const list = catsIn(g);
+      return el('div', { class: 'cat-group' },
+        el('h4', { text: GROUPS[g] }),
+        list.length ? list.map(c => el('button', {
+          type: 'button', class: 'cat-btn' + (c === state.lexCat ? ' active' : ''),
+          onclick: () => { state.lexCat = c; state.lexFilter = ''; renderCatNav(); renderCatEditor(); saveSession(); },
+        }, el('span', { text: c }), el('span', { class: 'n', text: String(data.categories[c].terms.length) + (data.categories[c].weight !== 1 ? ` ×${data.categories[c].weight}` : '') })))
+          : el('p', { class: 'muted small', text: '（無）' }));
+    }),
+    form);
+}
+function renderCatEditor() {
+  const name = state.lexCat;
+  const c = data.categories[name];
+  const box = $('#catEditor');
+  if (!c) { fill(box, ); return; }
+  const nameInput = el('input', { type: 'text', maxlength: 40, value: name, onchange: e => { if (!renameCategory(name, e.target.value)) e.target.value = name; } });
+  const groupSel = el('select', { onchange: e => { c.group = e.target.value; persist(); renderLex(); } }, GROUP_KEYS.map(g => el('option', { value: g, text: GROUPS[g] })));
+  groupSel.value = c.group;
+  const weightOut = el('output', { text: String(c.weight) });
+  const weight = el('input', {
+    type: 'range', min: 0, max: 5, step: 1, value: c.weight, 'aria-label': '抽取權重',
+    oninput: e => { c.weight = Number(e.target.value); weightOut.textContent = e.target.value; persist(); },
+    onchange: () => renderCatNav(),
+  });
+  const preview = el('p', { class: 'phrase-preview' });
+  const drawPreview = () => {
+    const sample = c.terms[0] || '範例';
+    fill(preview, ...(c.group === 'game'
+      ? ['遊戲設定類的分類會顯示在「契獸檔案」，不會套進描述句。']
+      : ['預覽：一隻以「', el('b', { text: '狐狸' }), '」為原型、', ...phraseParts(c.phrase, sample).map(x => (typeof x === 'string' ? x : el('b', { text: x.b }))), '的契獸。']));
+  };
+  drawPreview();
+  const phrase = el('input', {
+    type: 'text', maxlength: 60, value: c.phrase,
+    oninput: e => {
+      const ok = e.target.value.includes('{t}');
+      e.target.classList.toggle('invalid', !ok);
+      if (ok) { c.phrase = e.target.value; persist(); drawPreview(); }
+    },
+  });
+  const chips = el('div', { class: 'term-chips' });
+  const drawChips = () => {
+    const q = state.lexFilter.trim();
+    const list = c.terms.filter(t => !q || t.includes(q));
+    fill(chips, ...(list.length
+      ? list.map(t => el('button', { type: 'button', class: 'tchip', title: '點擊刪除', onclick: () => removeTerm(name, t) }, t, el('span', { class: 'x', text: '×' })))
+      : [el('span', { class: 'muted small', text: c.terms.length ? '沒有符合的詞。' : '這個分類還沒有詞彙。' })]));
+  };
+  drawChips();
+  const filter = el('input', { type: 'search', placeholder: '搜尋這個分類…', value: state.lexFilter, oninput: e => { state.lexFilter = e.target.value; drawChips(); } });
+  const ta = el('textarea', { rows: 3, placeholder: '每行一個詞，也可以用逗號或「、」分隔' });
+  fill(box, 
+    el('div', { class: 'panel-head' }, el('h2', { text: name }), el('span', { class: 'muted small', text: `${c.terms.length} 個詞` })),
+    el('div', { class: 'cat-meta' },
+      field('名稱', nameInput),
+      field('群組', groupSel),
+      el('div', { class: 'fld' }, el('span', { text: '抽取權重（0 = 不抽）' }), el('div', { class: 'range' }, weight, weightOut))),
+    c.group === 'game' ? null : field('描述句型（{t} 代表抽到的詞）', phrase),
+    preview,
+    el('div', { class: 'chips-head' }, el('h3', { text: '詞彙' }), filter),
+    el('p', { class: 'muted small', text: '點擊詞彙即可刪除；刪錯了，可以按下方提示裡的「復原」。' }),
+    chips,
+    el('h3', { text: '批次新增' }),
+    ta,
+    el('div', { class: 'form-actions' },
+      btn('加入詞彙', () => addTerms(name, ta), { icon: 'plus', cls: 'btn-primary' }),
+      el('span', { class: 'spacer' }),
+      btn('刪除這個分類', () => deleteCategory(name), { icon: 'trash', cls: 'btn-danger' })));
+}
+function renameCategory(old, next) {
+  next = str(next, 40);
+  if (next === old) return true;
+  if (!validName(next) || has(data.categories, next)) { toast('名稱是空的、已經存在，或不能使用'); return false; }
+  const ordered = {};
+  for (const [k, v] of Object.entries(data.categories)) ordered[k === old ? next : k] = v;
+  data.categories = ordered;
+  data.recipes.forEach(r => r.slots.forEach(s => { s.src = s.src.map(x => (x === old ? next : x)); }));
+  data.settings.profileOff = data.settings.profileOff.map(x => (x === old ? next : x));
+  data.dex.forEach(e => {
+    e.slots.forEach(s => { if (s.cat === old) s.cat = next; });
+    if (has(e.profile, old)) { e.profile[next] = e.profile[old]; delete e.profile[old]; }
+  });
+  state.slots.forEach(s => { if (s.cat === old) s.cat = next; if (s.override === old) s.override = next; });
+  if (state.profile[old]) { state.profile[next] = state.profile[old]; delete state.profile[old]; }
+  state.lexCat = next;
+  persist(); renderLex(); saveSession();
+  return true;
+}
+async function deleteCategory(name) {
+  if (cats().length <= 1) { toast('至少要保留一個分類'); return; }
+  const go = await ask(`刪除「${name}」？`, `分類裡的 ${data.categories[name].terms.length} 個詞會一起刪除。已收入圖鑑的條目不受影響。`, [
+    { label: '取消', value: false }, { label: '刪除', value: true, danger: true },
+  ]);
+  if (!go) return;
+  delete data.categories[name];
+  data.recipes.forEach(r => r.slots.forEach(s => { s.src = s.src.filter(x => x !== name); if (!s.src.length) s.src = ['@all']; }));
+  data.settings.profileOff = data.settings.profileOff.filter(x => x !== name);
+  state.lexCat = '';
+  persist(); renderLex();
+  toast(`已刪除分類「${name}」`);
+}
+function removeTerm(cat, t) {
+  const arr = data.categories[cat].terms;
+  const idx = arr.indexOf(t);
+  if (idx < 0) return;
+  arr.splice(idx, 1);
+  persist(); renderLex();
+  toast(`已刪除「${t}」`, {
+    action: '復原',
+    onAction: () => {
+      if (!has(data.categories, cat)) return;
+      const a = data.categories[cat].terms;
+      if (!a.includes(t)) a.splice(Math.min(idx, a.length), 0, t);
+      persist(); renderLex();
+    },
+  });
+}
+function addTerms(name, ta) {
+  const incoming = uniqTerms(ta.value.split(/[\r\n,，、]+/));
+  if (!incoming.length) { toast('請先輸入詞彙'); return; }
+  const c = data.categories[name];
+  const added = incoming.filter(t => !c.terms.includes(t));
+  c.terms.push(...added);
+  const elsewhere = added.map(t => [t, cats().filter(k => k !== name && data.categories[k].terms.includes(t))]).filter(x => x[1].length);
+  persist(); renderLex();
+  let msg = `新增 ${added.length} 個詞` + (incoming.length > added.length ? `，略過 ${incoming.length - added.length} 個重複` : '');
+  if (elsewhere.length) msg += '。注意：' + elsewhere.slice(0, 2).map(([t, k]) => `「${t}」也在${k.join('、')}`).join('；');
+  toast(msg);
+}
+function renderRecipeEditor() {
+  if (!data.recipes.some(r => r.id === state.lexRecipe)) state.lexRecipe = state.recipeId;
+  const r = data.recipes.find(x => x.id === state.lexRecipe) || data.recipes[0];
+  const srcOptions = [['@all', '全部（不含遊戲設定）'], ...GROUP_KEYS.map(g => ['@' + g, '群組：' + GROUPS[g]]), ...cats().map(c => [c, c])];
+  const rows = r.slots.map((s, i) => el('div', { class: 'rslot' },
+    el('div', { class: 'rslot-head' },
+      el('span', { class: 'rslot-no', text: String(i + 1) }),
+      el('input', { type: 'text', maxlength: 16, value: s.role, 'aria-label': '格位名稱', onchange: e => { s.role = str(e.target.value, 16) || '元素' + (i + 1); persist(); } }),
+      el('label', { class: 'check' }, el('input', { type: 'radio', name: 'recipeHero', checked: r.hero === i, onchange: () => { r.hero = i; persist(); } }), '預設主體'),
+      el('span', { class: 'spacer' }),
+      iconBtn('trash', '移除這一格', () => {
+        if (r.slots.length <= 1) { toast('至少要有一格'); return; }
+        r.slots.splice(i, 1);
+        if (r.hero >= r.slots.length) r.hero = 0;
+        persist(); renderRecipeEditor();
+      }, 'danger')),
+    el('div', { class: 'src-chips' }, srcOptions.map(([v, text]) => el('button', {
+      type: 'button', class: 'src-chip' + (v.startsWith('@') ? ' group' : '') + (s.src.includes(v) ? ' on' : ''), text,
+      onclick: () => {
+        const k = s.src.indexOf(v);
+        if (k >= 0) {
+          if (s.src.length === 1) { toast('每一格至少要有一個來源'); return; }
+          s.src.splice(k, 1);
+        } else s.src.push(v);
+        persist(); renderRecipeEditor();
+      },
+    })))));
+  fill($('#recipeEditor'), 
+    el('div', { class: 'panel-head' },
+      el('h2', { text: '配方' }),
+      el('div', { class: 'head-actions' },
+        btn('新增配方', () => {
+          const n = { id: uid(), name: '新配方', desc: '', hero: 0, slots: [{ role: '主體', src: ['@body'] }, { role: '元素', src: ['@mod'] }, { role: '特徵', src: ['@hook'] }] };
+          data.recipes.push(n); state.lexRecipe = n.id; persist(); renderRecipeEditor();
+        }, { icon: 'plus', cls: 'btn-sm' }),
+        btn('複製這個配方', () => {
+          const n = { ...clone(r), id: uid(), name: (r.name + '（複製）').slice(0, 20) };
+          data.recipes.push(n); state.lexRecipe = n.id; persist(); renderRecipeEditor();
+        }, { icon: 'copy', cls: 'btn-sm' }),
+        btn('刪除', async () => {
+          if (data.recipes.length <= 1) { toast('至少要保留一個配方'); return; }
+          const go = await ask(`刪除配方「${r.name}」？`, '已收入圖鑑的條目不受影響。', [{ label: '取消', value: false }, { label: '刪除', value: true, danger: true }]);
+          if (!go) return;
+          data.recipes = data.recipes.filter(x => x.id !== r.id);
+          if (state.recipeId === r.id) { state.recipeId = data.recipes[0].id; data.settings.recipeId = state.recipeId; }
+          state.lexRecipe = '';
+          persist(); renderRecipeEditor();
+        }, { icon: 'trash', cls: 'btn-sm btn-danger' }))),
+    el('p', { class: 'muted small', text: '配方決定每一格從哪些分類抽詞。選「群組」的話，之後新增到該群組的分類也會自動納入。' }),
+    el('div', { class: 'recipe-pills', style: 'margin-top:12px' }, data.recipes.map(x => el('button', {
+      type: 'button', class: 'pill' + (x.id === r.id ? ' active' : ''), text: x.name, onclick: () => { state.lexRecipe = x.id; renderRecipeEditor(); saveSession(); },
+    }))),
+    el('div', { class: 'recipe-meta' },
+      field('配方名稱', el('input', { type: 'text', maxlength: 20, value: r.name, onchange: e => { r.name = str(e.target.value, 20) || r.name; persist(); renderRecipeEditor(); } })),
+      field('說明', el('input', { type: 'text', maxlength: 80, value: r.desc, onchange: e => { r.desc = str(e.target.value, 80); persist(); } }))),
+    el('div', { class: 'rslots' }, rows),
+    el('div', { class: 'form-actions' },
+      btn('新增格位', () => { r.slots.push({ role: '元素' + (r.slots.length + 1), src: ['@all'] }); persist(); renderRecipeEditor(); }, { icon: 'plus', disabled: r.slots.length >= MAX_SLOTS }),
+      el('span', { class: 'spacer' }),
+      btn('恢復預設配方', resetRecipes, { cls: 'btn-ghost' })));
+}
+
+// ---------- render: data view ----------
+let v1Cache = null;
+function findV1() {
+  if (v1Cache) return v1Cache;
+  v1Cache = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (!k || !k.startsWith(V1_PREFIX)) continue;
+      try { const v = JSON.parse(localStorage.getItem(k)); if (isV1(v)) v1Cache.push(v); } catch (e) { /* skip */ }
+    }
+  } catch (e) { /* storage unavailable */ }
+  return v1Cache;
+}
+const v1SavedCount = list => list.reduce((a, x) => a + (Array.isArray(x.saved) ? x.saved.length : 0), 0);
+function importV1() {
+  const total = { terms: 0, cats: 0, dex: 0 };
+  findV1().forEach(v => {
+    const r = mergeData(data, fromV1(v));
+    total.terms += r.terms; total.cats += r.cats; total.dex += r.dex;
+  });
+  data.settings.v1Dismissed = true;
+  persist();
+  syncAfterData();
+  toast(`已匯入舊版資料：${total.dex} 筆收藏、${total.terms} 個詞彙`);
+}
+function renderV1Banner() {
+  const list = findV1();
+  const box = $('#v1Banner');
+  if (!list.length || data.settings.v1Dismissed) { fill(box, ); return; }
+  fill(box, el('div', { class: 'banner' },
+    el('div', { class: 'banner-text' },
+      el('strong', { text: '偵測到舊版產生器的資料' }),
+      el('span', { text: `共 ${v1SavedCount(list)} 筆收藏。匯入後會轉成圖鑑條目，你自己加的詞彙也會合併進來。` })),
+    el('div', { class: 'head-actions' },
+      btn('匯入舊版資料', importV1, { cls: 'btn-primary btn-sm' }),
+      btn('不用了', () => { data.settings.v1Dismissed = true; persist(); renderV1Banner(); }, { cls: 'btn-ghost btn-sm' }))));
+}
+function renderDataTab() {
+  const termCount = cats().reduce((a, c) => a + data.categories[c].terms.length, 0);
+  const kb = Math.round(JSON.stringify(data).length * 2 / 1024);
+  $('#storageInfo').textContent = `目前資料：${cats().length} 個分類、${termCount} 個詞彙、${data.recipes.length} 個配方、${data.dex.length} 筆圖鑑（約 ${kb} KB）。`;
+  const list = findV1();
+  fill($('#v1Section'), 
+    el('h2', { text: '舊版（v1）資料' }),
+    list.length
+      ? el('p', { class: 'muted small', text: `這個瀏覽器裡找到舊版的存檔，共 ${v1SavedCount(list)} 筆收藏。匯入會合併到目前資料；已經匯入過的收藏不會重複加入。` })
+      : el('p', { class: 'muted small', text: '這個瀏覽器裡沒有找到舊版存檔。如果舊資料在別的瀏覽器，請在舊版按「匯出 JSON 備份」，再到左邊用「匯入 JSON」讀進來。' }),
+    list.length ? el('div', { class: 'btn-row' }, btn('匯入舊版資料', importV1, { icon: 'upload' })) : null,
+    el('p', { class: 'muted small', style: 'margin-top:12px', text: '匯入舊版時，v2 已經修正的錯誤分類詞（例如放在鳥類裡的「鴨嘴獸」）不會被加回來。' }));
+}
+async function importJsonFile(file) {
+  let raw;
+  try { raw = JSON.parse(await file.text()); } catch (e) { toast('無法讀取：這不是有效的 JSON 檔'); return; }
+  try {
+    if (isV1(raw)) {
+      const inc = fromV1(raw);
+      const go = await ask('匯入舊版備份', `偵測到 v1 備份：${Object.keys(inc.categories).length} 個分類、${inc.dex.length} 筆收藏。\n會合併到目前資料，收藏會轉成圖鑑條目。`, [
+        { label: '取消', value: false }, { label: '合併匯入', value: true, primary: true },
+      ]);
+      if (!go) return;
+      const r = mergeData(data, inc);
+      toast(`已合併：${r.dex} 筆圖鑑、${r.terms} 個詞彙`);
+    } else {
+      const inc = normalizeData(raw);
+      const mode = await ask('匯入備份', `檔案內有 ${Object.keys(inc.categories).length} 個分類、${inc.recipes.length} 個配方、${inc.dex.length} 筆圖鑑。\n「合併」會保留目前資料再加入新內容；「取代」會完全換成檔案裡的內容。`, [
+        { label: '取消', value: '' }, { label: '取代全部', value: 'replace', danger: true }, { label: '合併', value: 'merge', primary: true },
+      ]);
+      if (!mode) return;
+      if (mode === 'replace') { data = inc; state.editingId = null; state.savedSig = ''; toast('已取代為備份內容'); }
+      else { const r = mergeData(data, inc); toast(`已合併：${r.dex} 筆圖鑑、${r.terms} 個詞彙、${r.recipes} 個配方`); }
+    }
+  } catch (e) { toast('匯入失敗：' + e.message); return; }
+  persist();
+  syncAfterData();
+}
+function exportHtml() {
+  const seed = clone(data);
+  seed.fileId = 'f' + uid();
+  seed.settings.v1Dismissed = true;
+  const payload = JSON.stringify(seed).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+  const re = new RegExp('(<script id="seedData" type="application/json">)[\\s\\S]*?(</' + 'script>)');
+  const html = TEMPLATE.replace(re, (_, a, b) => a + payload + b);
+  download(`契獸靈感產生器_v2_${stamp()}.html`, html, 'text/html;charset=utf-8');
+  toast('已匯出含目前資料的 HTML');
+}
+function dexMarkdown(list) {
+  const lines = [`# 契獸圖鑑（${list.length} 隻）`, ''];
+  list.forEach((e, i) => {
+    lines.push(`## ${i + 1}. ${e.name || summaryOf(e)}`, '');
+    lines.push(`- 組合：${e.slots.map((s, j) => (j === e.hero ? '★' : '') + s.term).join(' × ')}`);
+    lines.push(`- 描述：${describe(e).text}`);
+    Object.entries(e.profile).forEach(([k, v]) => lines.push(`- ${label(k)}：${v}`));
+    if (e.palette) lines.push(`- 配色（${e.palette.scheme}）：${e.palette.colors.map(c => '`' + c + '`').join(' ')}`);
+    if (e.evo) lines.push(`- ${evoText(e)}`);
+    lines.push(`- 狀態：${STATUS[e.status]}${e.tags.length ? '｜標籤：' + e.tags.join('、') : ''}`);
+    if (e.note) lines.push('', e.note);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+function exportMd(list) {
+  if (!list.length) { toast('沒有可匯出的條目'); return; }
+  download(`契獸圖鑑_${stamp()}.md`, dexMarkdown(list), 'text/markdown;charset=utf-8');
+}
+async function resetRecipes() {
+  const go = await ask('恢復預設配方？', '自訂的配方會被移除。', [{ label: '取消', value: false }, { label: '恢復', value: true, danger: true }]);
+  if (!go) return;
+  data.recipes = SEED.recipes.map(normalizeRecipe).filter(Boolean);
+  persist(); syncAfterData();
+  toast('已恢復預設配方');
+}
+
+// ---------- shared helpers ----------
+const stamp = () => new Date().toISOString().slice(0, 10).replace(/-/g, '');
+function download(filename, content, type) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  const a = el('a', { href: url, download: filename });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
+}
+function copyText(text, msg = '已複製') {
+  const done = () => toast(msg);
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => fallbackCopy(text, done));
+  else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done) {
+  const ta = el('textarea', { style: 'position:fixed;opacity:0' });
+  ta.value = text;
+  document.body.append(ta);
+  ta.select();
+  try { document.execCommand('copy'); done(); } catch (e) { toast('複製失敗，請手動選取'); }
+  ta.remove();
+}
+function toast(msg, opts = {}) {
+  const box = $('#toasts');
+  while (box.children.length >= 3) box.firstChild.remove();
+  const t = el('div', { class: 'toast' }, el('span', { text: msg }));
+  if (opts.action) t.append(el('button', { type: 'button', class: 'toast-action', text: opts.action, onclick: () => { opts.onAction(); t.remove(); } }));
+  box.append(t);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, opts.action ? 6500 : 2600);
+}
+function ask(title, message, buttons) {
+  return new Promise(resolve => {
+    const dlg = $('#dialog');
+    let settled = false;
+    const finish = v => { if (settled) return; settled = true; if (dlg.open) dlg.close(); resolve(v); };
+    fill(dlg, 
+      el('h3', { text: title }),
+      el('p', { text: message }),
+      el('div', { class: 'dialog-actions' }, buttons.map(b => el('button', {
+        type: 'button', class: 'btn ' + (b.danger ? 'btn-danger' : b.primary ? 'btn-primary' : ''), text: b.label, onclick: () => finish(b.value),
+      }))));
+    dlg.addEventListener('close', () => finish(buttons[0].value), { once: true });
+    dlg.showModal();
+  });
+}
+function syncAfterData() {
+  v1Cache = null;
+  if (!data.recipes.some(r => r.id === state.recipeId)) state.recipeId = data.recipes[0].id;
+  ensureSlots();
+  if (!state.prompts.length) rollPrompts();
+  renderRoll();
+  renderForm();
+  renderDexCount();
+  renderV1Banner();
+  if (state.tab === 'dex') renderDex();
+  if (state.tab === 'lex') renderLex();
+  if (state.tab === 'data') renderDataTab();
+  saveSession();
+}
+function setTab(t) {
+  state.tab = t;
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  $$('.view').forEach(v => { v.hidden = v.id !== 'view-' + t; });
+  if (t === 'roll') { ensureSlots(); renderRoll(); renderForm(); }
+  else if (t === 'dex') renderDex();
+  else if (t === 'lex') renderLex();
+  else if (t === 'data') renderDataTab();
+  saveSession();
+}
+
+// ---------- wiring ----------
+function bind() {
+  $$('[data-icon]').forEach(b => b.insertAdjacentHTML('afterbegin', ICON[b.dataset.icon] || ''));
+  $$('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  $('#rollBtn').addEventListener('click', rollAll);
+  $('#undoBtn').addEventListener('click', undo);
+  $('#dexSearch').addEventListener('input', e => { state.dexFilter.q = e.target.value; renderDex(); });
+  $('#dexSort').addEventListener('change', e => { state.dexFilter.sort = e.target.value; renderDex(); });
+  $('#dexExportMd').addEventListener('click', () => exportMd(filteredDex()));
+  $('#exportJson').addEventListener('click', () => download(`契獸靈感備份_${stamp()}.json`, JSON.stringify(data, null, 2), 'application/json;charset=utf-8'));
+  $('#importJson').addEventListener('click', () => $('#jsonFile').click());
+  $('#jsonFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importJsonFile(f); });
+  $('#exportHtml').addEventListener('click', exportHtml);
+  $('#exportMdAll').addEventListener('click', () => exportMd(data.dex));
+  $('#resetLex').addEventListener('click', async () => {
+    const go = await ask('恢復預設詞庫？', '所有分類和詞彙會回到這個檔案內建的狀態。圖鑑和配方會保留。', [{ label: '取消', value: false }, { label: '恢復', value: true, danger: true }]);
+    if (!go) return;
+    data.categories = defaultData().categories;
+    state.lexCat = '';
+    persist(); syncAfterData();
+    toast('已恢復預設詞庫');
+  });
+  $('#resetRecipes').addEventListener('click', resetRecipes);
+  $('#resetAll').addEventListener('click', async () => {
+    const go = await ask('全部重設？', '詞庫、配方和整本圖鑑都會被清除，回到這個檔案內建的狀態。這個動作無法復原，建議先匯出 JSON 備份。', [{ label: '取消', value: false }, { label: '全部清除', value: true, danger: true }]);
+    if (!go) return;
+    data = defaultData();
+    data.settings.v1Dismissed = true;
+    Object.assign(state, { editingId: null, savedSig: '', history: [], histIndex: 0, profile: {}, slots: [], form: { name: '', status: 'idea', tags: '', note: '' } });
+    state.recipeId = data.settings.recipeId;
+    persist();
+    syncAfterData();
+    rollAll();
+    toast('已全部重設');
+  });
+
+  const typing = t => t.closest && t.closest('input, textarea, select, [contenteditable="true"]');
+  document.addEventListener('keydown', e => {
+    if (state.tab !== 'roll' || $('#dialog').open || typing(e.target)) return;
+    const mod = e.ctrlKey || e.metaKey;
+    const key = e.key.toLowerCase();
+    if (mod) {
+      if (key === 's') { e.preventDefault(); saveAction(); }
+      else if (key === 'z') { e.preventDefault(); undo(); }
+      return;
+    }
+    if (e.altKey) return;
+    const digit = e.code.match(/^(?:Digit|Numpad)([1-6])$/);
+    if (e.code === 'Space') { e.preventDefault(); if (!e.repeat) rollAll(); }
+    else if (digit) { const i = Number(digit[1]) - 1; if (i < state.slots.length) { e.preventDefault(); e.shiftKey ? toggleLock(i) : rerollSlot(i); } }
+    else if (key === 'z') undo();
+    else if (key === 's') saveAction();
+    else if (key === 'p') rerollPalette();
+    else if (key === 'q') { rollPrompts(); renderDesc(); saveSession(); }
+  });
+  // Stop Space from also "clicking" whichever button still has focus.
+  document.addEventListener('keyup', e => { if (e.code === 'Space' && state.tab === 'roll' && !typing(e.target)) e.preventDefault(); });
+  window.addEventListener('beforeunload', () => { if (saveTimer) persistNow(); writeSession(); });
+}
+
+// ---------- start ----------
+const hadSession = restoreSession();
+bind();
+ensureSlots();
+if (!state.prompts.length) rollPrompts();
+renderDexCount();
+renderV1Banner();
+renderForm();
+if (hadSession) setTab(state.tab);
+else { setTab(state.tab); rollAll(); }
+})();
+</script>
+</body>
+</html>
